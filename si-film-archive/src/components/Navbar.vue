@@ -13,6 +13,13 @@ import {
   DropdownMenuLabel
 } from 'radix-vue'
 
+defineProps({
+  lightTitle: {
+    type: Boolean,
+    default: false
+  }
+})
+
 const open = ref(false)
 </script>
 
@@ -24,7 +31,10 @@ const open = ref(false)
         <div class="w-10 h-10 bg-brand-red shadow-brutal-sm border-2 border-slate-900 flex items-center justify-center">
           <Film class="w-5 h-5 text-white" />
         </div>
-        <span class="text-2xl font-bold font-display text-[#000] hidden sm:block">CineArchive</span>
+        <span 
+          class="text-2xl font-bold font-display hidden sm:block transition-colors duration-300"
+          :class="lightTitle ? 'text-white' : 'text-[#000]'"
+        >CineArchive</span>
       </router-link>
 
       <!-- Search Bar -->
@@ -33,7 +43,7 @@ const open = ref(false)
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 z-10" />
           <Input 
             type="text" 
-            placeholder="Search film archives..."
+            placeholder="Search archives"
             class="pl-10 pr-28 bg-orange-100 border-orange-100 shadow-none"
           />
           <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">

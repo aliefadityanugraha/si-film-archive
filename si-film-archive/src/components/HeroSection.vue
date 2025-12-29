@@ -17,9 +17,9 @@ import { Badge } from '@/components/ui/badge'
     </div>
 
     <!-- Content -->
-    <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-8 pt-32 md:pt-40">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-8 h-full min-h-[600px] md:min-h-[670px] flex flex-col justify-end pb-16 md:pb-20">
       <!-- AI Summary Badge -->
-      <Badge variant="outline" class="bg-white/90 text-slate-900 mb-6">
+      <Badge variant="outline" class="bg-white/90 text-slate-900 mb-6 w-fit py-3 px-4">
         <Sparkles class="w-4 h-4 mr-2" />
         AI Summary
       </Badge>

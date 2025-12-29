@@ -26,7 +26,7 @@ const documents = ref([
 </script>
 
 <template>
-  <div class="min-h-screen bg-brand-cream">
+  <div class="min-h-screen bg-[#F2EEE3]">
     <Navbar />
 
     <main class="max-w-4xl mx-auto px-4 md:px-8 pt-28 pb-16">

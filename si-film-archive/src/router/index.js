@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../pages/Home.vue'
 import About from '../pages/About.vue'
 import Detail from '../pages/Detail.vue'
+import LearningAsset from '../pages/LearningAsset.vue'
 import DashboardUser from '../pages/DashboardUser.vue'
 import Upload from '../pages/Upload.vue'
 import Profile from '../pages/Profile.vue'
@@ -28,6 +29,11 @@ const routes = [
     path: '/detail/:id?',
     name: 'Detail',
     component: Detail
+  },
+  {
+    path: '/film/:filmId/asset/:assetSlug',
+    name: 'LearningAsset',
+    component: LearningAsset
   },
   {
     path: '/dashboard',

@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
 import DetailHero from '@/components/DetailHero.vue'
@@ -7,6 +8,28 @@ import ContentSection from '@/components/ContentSection.vue'
 import TagList from '@/components/TagList.vue'
 import LearningAssetItem from '@/components/LearningAssetItem.vue'
 import DiscussionForum from '@/components/DiscussionForum.vue'
+
+const route = useRoute()
+const filmId = computed(() => route.params.id || '1')
+
+const heroRef = ref(null)
+const isLightTitle = ref(true)
+
+const handleScroll = () => {
+  if (heroRef.value) {
+    const heroHeight = heroRef.value.$el?.offsetHeight || heroRef.value.offsetHeight || 600
+    isLightTitle.value = window.scrollY < heroHeight - 80
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+  handleScroll()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 
 const film = ref({
   title: 'The Silent Echo',
@@ -30,9 +53,10 @@ const learningAssets = ref([
 
 <template>
   <div class="min-h-screen bg-[#F2EEE3]">
-    <Navbar />
+    <Navbar :light-title="isLightTitle" />
     
     <DetailHero 
+      ref="heroRef"
       :title="film.title"
       :year="film.year"
       :duration="film.duration"
@@ -74,6 +98,7 @@ const learningAssets = ref([
                 :title="asset.title"
                 :file-type="asset.fileType"
                 :file-size="asset.fileSize"
+                :film-id="filmId"
               />
             </div>
           </ContentSection>

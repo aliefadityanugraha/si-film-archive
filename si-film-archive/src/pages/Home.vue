@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import HeroSection from '@/components/HeroSection.vue'
 import SectionHeader from '@/components/SectionHeader.vue'
@@ -7,6 +7,25 @@ import MovieCard from '@/components/MovieCard.vue'
 import MovieListItem from '@/components/MovieListItem.vue'
 import FilmInfoCard from '@/components/FilmInfoCard.vue'
 import Footer from '@/components/Footer.vue'
+
+const heroRef = ref(null)
+const isLightTitle = ref(true)
+
+const handleScroll = () => {
+  if (heroRef.value) {
+    const heroHeight = heroRef.value.$el?.offsetHeight || heroRef.value.offsetHeight || 600
+    isLightTitle.value = window.scrollY < heroHeight - 80
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+  handleScroll()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 
 const studentWorks = ref([
   { id: 1, image: 'https://placehold.co/252x380', rating: 4.8 },
@@ -50,13 +69,13 @@ const featuredFilms = ref([
 
 <template>
   <div class="min-h-screen bg-[#F2EEE3]">
-    <Navbar />
-    <HeroSection />
+    <Navbar :light-title="isLightTitle" />
+    <HeroSection ref="heroRef" />
 
     <!-- Student Works Section -->
     <section class="max-w-7xl mx-auto px-4 md:px-8 py-12">
       <SectionHeader 
-        title="Student Works" 
+        title="Team Works" 
         subtitle="Vote for the monthly showcase selection"
         :light-text="false"
       />

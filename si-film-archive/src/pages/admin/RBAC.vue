@@ -125,10 +125,6 @@ const getStatusClass = (status) => {
 
       <!-- Roles Section -->
       <section class="mb-8">
-        <h2 class="text-xl font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-          <Shield class="w-5 h-5" />
-          System Roles
-        </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
           <Card v-for="role in roles" :key="role.id" class="hover:shadow-brutal transition-shadow">
             <CardContent class="p-4">

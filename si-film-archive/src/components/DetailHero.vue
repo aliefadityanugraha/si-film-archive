@@ -58,20 +58,23 @@ const synopsis = `In a remote mountain village rapidly emptying of its youth, a 
           </h1>
 
           <!-- Genres -->
-          <div class="flex flex-wrap items-center gap-2 text-sm font-body text-white mb-8">
+          <div class="flex flex-wrap items-center gap-2 text-sm font-body text-white mb-6">
             <template v-for="(genre, index) in genres" :key="genre">
               <span>{{ genre }}</span>
               <span v-if="index < genres.length - 1" class="text-white/50">//</span>
             </template>
           </div>
 
-          <!-- Action Buttons -->
-          <div>
-             <!-- <ContentSection title="Synopsis" color="red">
-              <p>{{ synopsis }}</p>
-              <TagList :tags="tags" />
-            </ContentSection> -->
+          <!-- Synopsis -->
+          <div class="mb-8">
+            <h3 class="text-lg font-display font-semibold text-white mb-2">Synopsis</h3>
+            <p class="text-sm md:text-base text-white/90 leading-relaxed line-clamp-4">
+              {{ synopsis }}
+            </p>
+            <TagList :tags="tags" class="mt-3" />
           </div>
+
+          <!-- Action Buttons -->
           <div class="flex flex-wrap gap-3">
             <Button variant="outline" class="bg-white text-stone-800">
               <Bookmark class="w-4 h-4 mr-2" />
