@@ -1,13 +1,15 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import { 
   LayoutDashboard, Shield, Users, Film, Settings, 
   LogOut, ChevronLeft, ChevronRight, Upload, FileText,
-  BarChart3, Bell, HelpCircle
+  BarChart3, Bell, HelpCircle, FolderOpen, MessageCircle, ImageIcon
 } from 'lucide-vue-next'
 
 const route = useRoute()
+const { user, isAdmin, isModerator, logout } = useAuth()
 const isCollapsed = ref(false)
 
 const emit = defineEmits(['update:collapsed'])
@@ -16,21 +18,55 @@ watch(isCollapsed, (val) => {
   emit('update:collapsed', val)
 })
 
-const menuItems = [
+const checkScreenSize = () => {
+  if (window.innerWidth < 1024 && !isCollapsed.value) {
+    isCollapsed.value = true
+  }
+}
+
+onMounted(() => {
+  // Check initial size
+  if (window.innerWidth < 1024) {
+    isCollapsed.value = true
+  }
+  window.addEventListener('resize', checkScreenSize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScreenSize)
+})
+
+const allMenuItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
   { name: 'Access Control', icon: Shield, path: '/admin/rbac' },
   { name: 'Users', icon: Users, path: '/admin/users' },
+  { name: 'Categories', icon: FolderOpen, path: '/admin/categories' },
   { name: 'Films', icon: Film, path: '/admin/films' },
+  { name: 'Carousel', icon: ImageIcon, path: '/admin/carousel' },
+  { name: 'Comments', icon: MessageCircle, path: '/admin/comments' },
   { name: 'Uploads', icon: Upload, path: '/admin/uploads' },
   { name: 'Reports', icon: FileText, path: '/admin/reports' },
   { name: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
 ]
+
+const menuItems = computed(() => {
+  if (isAdmin.value) return allMenuItems
+  if (isModerator.value) {
+    return allMenuItems.filter(item => item.path === '/admin/films')
+  }
+  return []
+})
 
 const bottomMenuItems = [
   { name: 'Notifications', icon: Bell, path: '/admin/notifications' },
   { name: 'Settings', icon: Settings, path: '/admin/settings' },
   { name: 'Help', icon: HelpCircle, path: '/admin/help' },
 ]
+
+const visibleBottomMenuItems = computed(() => {
+  if (isAdmin.value) return bottomMenuItems
+  return [] // Hide notifications, settings, and help for moderators
+})
 
 const isActive = (path) => route.path === path
 </script>
@@ -90,13 +126,14 @@ const isActive = (path) => route.path === path
     </nav>
 
     <!-- Bottom Menu -->
-    <div class="p-3 border-t-2 border-stone-900 space-y-1">
+    <div v-if="visibleBottomMenuItems.length > 0" class="p-3 border-t-2 border-stone-900 space-y-1">
       <router-link
-        v-for="item in bottomMenuItems"
+        v-for="item in visibleBottomMenuItems"
         :key="item.path"
         :to="item.path"
         :class="[
-          'flex items-center gap-3 px-3 py-2 transition-all font-body',
+          'flex items-center gap-3 py-2 transition-all font-body',
+          isCollapsed ? 'px-2 justify-center' : 'px-3',
           isActive(item.path) 
             ? 'bg-brand-teal text-white border-2 border-stone-900 shadow-brutal-sm' 
             : 'hover:bg-stone-200 text-stone-500 hover:text-stone-900 border-2 border-transparent'
@@ -111,13 +148,13 @@ const isActive = (path) => route.path === path
     <div class="p-3 border-t-2 border-stone-900">
       <div :class="['flex items-center gap-3', isCollapsed ? 'justify-center' : '']">
         <div class="w-9 h-9 bg-brand-orange border-2 border-stone-900 shadow-brutal-sm flex items-center justify-center text-sm font-bold flex-shrink-0 text-stone-900">
-          AM
+          {{ user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'AD' }}
         </div>
         <div v-if="!isCollapsed" class="flex-1 min-w-0">
-          <p class="text-sm font-bold truncate font-body text-stone-900">Alex Morgan</p>
-          <p class="text-[10px] text-stone-500 uppercase font-body font-bold">Super Admin</p>
+          <p class="text-sm font-bold truncate font-body text-stone-900">{{ user?.name || 'Admin' }}</p>
+          <p class="text-[10px] text-stone-500 uppercase font-body font-bold">{{ user?.role?.name || 'Super Admin' }}</p>
         </div>
-        <button v-if="!isCollapsed" class="p-1.5 hover:bg-stone-200 transition-colors border-2 border-transparent hover:border-stone-900">
+        <button v-if="!isCollapsed" @click="logout" class="p-1.5 hover:bg-stone-200 transition-colors border-2 border-transparent hover:border-stone-900">
           <LogOut class="w-4 h-4 text-brand-red" />
         </button>
       </div>

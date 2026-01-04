@@ -1,0 +1,31 @@
+{
+  "name": "si-film-archive-backend",
+  "version": "1.0.0",
+  "description": "Backend API for SI Film Archive",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "migrate": "knex migrate:latest",
+    "migrate:rollback": "knex migrate:rollback",
+    "seed": "knex seed:run"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^10.0.0",
+    "@fastify/cors": "^10.0.0",
+    "@fastify/multipart": "^9.3.0",
+    "@fastify/static": "^9.0.0",
+    "better-auth": "^1.4.9",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.0.0",
+    "fastify-better-auth": "^1.2.0",
+    "knex": "^3.1.0",
+    "kysely": "^0.28.9",
+    "mysql2": "^3.11.0",
+    "objection": "^3.1.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

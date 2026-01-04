@@ -40,7 +40,7 @@ const curatedFilms = ref([
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F2EEE3]">
+  <div class="min-h-screen flex flex-col bg-[#F2EEE3]">
     <Navbar />
 
     <main class="max-w-6xl mx-auto px-4 md:px-8 pt-28 pb-12">

@@ -1,31 +1,71 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { api } from '@/lib/api'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Printer, Download, ArrowLeft, FileText } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Printer, Download, ArrowLeft, FileText, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 
 const route = useRoute()
 const router = useRouter()
 
 // Route params
-const filmId = computed(() => route.params.filmId || '1')
-const assetSlug = computed(() => route.params.assetSlug || 'naskah-film')
+const filmId = computed(() => route.params.filmId)
+const assetSlug = computed(() => route.params.assetSlug)
 
-// Mock data - in real app, fetch based on filmId and assetSlug
-const assetData = ref({
-  filmTitle: 'The Silent Echo',
-  assetTitle: 'Naskah Film (Script)',
-  fileType: 'PDF',
-  fileSize: '2.4 MB',
-  totalPages: 24,
-  screenplayBy: 'Aditya Mulya & Sarah Jenkins',
-  draftInfo: 'Draft 4.2 • July 14, 2023'
+const film = ref(null)
+const loading = ref(true)
+const error = ref(null)
+
+// Asset mapping
+const assetConfig = {
+  'naskah-film': {
+    field: 'file_naskah',
+    title: 'Naskah Film',
+    type: 'Script'
+  },
+  'storyboard': {
+    field: 'file_storyboard',
+    title: 'Storyboard',
+    type: 'Visual'
+  },
+  'rab': {
+    field: 'file_rab',
+    title: 'RAB (Budget)',
+    type: 'Document'
+  }
+}
+
+const currentAssetConfig = computed(() => assetConfig[assetSlug.value] || null)
+
+const assetUrl = computed(() => {
+  if (!film.value || !currentAssetConfig.value) return null
+  return film.value[currentAssetConfig.value.field]
 })
 
+const fetchFilm = async () => {
+  if (!filmId.value) return
+  
+  loading.value = true
+  error.value = null
+  try {
+    const res = await api.get(`/api/films/${filmId.value}`)
+    film.value = res.data
+    
+    // Verify asset exists
+    if (!currentAssetConfig.value || !film.value[currentAssetConfig.value.field]) {
+      error.value = 'Aset pembelajaran tidak ditemukan untuk film ini.'
+    }
+  } catch (err) {
+    console.error('Failed to fetch film:', err)
+    error.value = 'Gagal memuat data film.'
+  } finally {
+    loading.value = false
+  }
+}
+
 // Viewer state
-const currentPage = ref(1)
 const zoomLevel = ref(100)
 
 const zoomIn = () => {
@@ -36,25 +76,40 @@ const zoomOut = () => {
   if (zoomLevel.value > 50) zoomLevel.value -= 25
 }
 
-const nextPage = () => {
-  if (currentPage.value < assetData.value.totalPages) currentPage.value++
-}
-
-const prevPage = () => {
-  if (currentPage.value > 1) currentPage.value--
-}
-
 const goBack = () => {
   router.push({ name: 'Detail', params: { id: filmId.value } })
 }
 
+const downloadAsset = () => {
+  if (assetUrl.value) {
+    window.open(assetUrl.value, '_blank')
+  }
+}
+
+const printAsset = () => {
+  const iframe = document.querySelector('iframe')
+  if (iframe) {
+    iframe.contentWindow.print()
+  }
+}
+
 // Breadcrumb items
-const breadcrumbs = computed(() => [
-  { label: 'Home', path: '/' },
-  { label: 'Films', path: '/' },
-  { label: assetData.value.filmTitle, path: `/detail/${filmId.value}` },
-  { label: assetData.value.assetTitle.split(' (')[0], active: true }
-])
+const breadcrumbs = computed(() => {
+  if (!film.value) return []
+  return [
+    { label: 'Home', path: '/' },
+    { label: film.value.judul, path: `/detail/${filmId.value}` },
+    { label: currentAssetConfig.value?.title || 'Asset', active: true }
+  ]
+})
+
+onMounted(() => {
+  fetchFilm()
+})
+
+watch(() => route.params, () => {
+  fetchFilm()
+})
 </script>
 
 <template>
@@ -62,186 +117,101 @@ const breadcrumbs = computed(() => [
     <Navbar />
     
     <main class="max-w-7xl mx-auto px-4 md:px-8 pt-24 pb-12">
-      <!-- Breadcrumb -->
-      <nav class="flex items-center gap-2 text-sm mb-6">
-        <template v-for="(crumb, index) in breadcrumbs" :key="index">
-          <router-link 
-            v-if="!crumb.active" 
-            :to="crumb.path"
-            class="font-bold uppercase tracking-wide text-stone-400 hover:text-stone-600 transition-colors"
-          >
-            {{ crumb.label }}
-          </router-link>
-          <span v-else class="font-bold uppercase tracking-wide text-stone-800 border-b-2 border-orange-400 pb-0.5">
-            {{ crumb.label }}
-          </span>
-          <span v-if="index < breadcrumbs.length - 1" class="text-stone-300">/</span>
-        </template>
-      </nav>
+      <!-- Loading State -->
+      <div v-if="loading" class="flex flex-col items-center justify-center min-h-[50vh]">
+        <Loader2 class="w-10 h-10 animate-spin text-stone-400 mb-4" />
+        <p class="text-stone-500">Memuat aset pembelajaran...</p>
+      </div>
 
-      <!-- Toolbar -->
-      <div class="bg-stone-200 rounded-xl border-2 border-stone-800 shadow-[4px_4px_0px_0px_rgba(43,38,38,1)] p-4 mb-6">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <!-- Back Button & Title -->
-          <div class="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              @click="goBack"
-              class="flex items-center gap-2 hover:bg-stone-300"
+      <!-- Error State -->
+      <div v-else-if="error" class="flex flex-col items-center justify-center min-h-[50vh] text-center">
+        <FileText class="w-16 h-16 text-stone-300 mb-4" />
+        <h2 class="text-xl font-bold text-stone-800 mb-2">Aset Tidak Ditemukan</h2>
+        <p class="text-stone-500 mb-6">{{ error }}</p>
+        <Button @click="goBack">Kembali ke Detail Film</Button>
+      </div>
+
+      <template v-else>
+        <!-- Breadcrumb -->
+        <nav class="flex items-center gap-2 text-sm mb-6 flex-wrap">
+          <template v-for="(crumb, index) in breadcrumbs" :key="index">
+            <router-link 
+              v-if="!crumb.active" 
+              :to="crumb.path"
+              class="font-bold uppercase tracking-wide text-stone-400 hover:text-stone-600 transition-colors"
             >
-              <ArrowLeft class="w-5 h-5" />
-              <span class="font-bold">Back to Details</span>
-            </Button>
-            
-            <div class="hidden sm:block w-px h-8 bg-stone-300" />
-            
-            <div class="hidden sm:flex items-center gap-3">
-              <div class="w-11 h-10 bg-stone-100 rounded-lg border border-stone-300 flex items-center justify-center">
-                <FileText class="w-5 h-5 text-teal-600" />
-              </div>
-              <div>
-                <h1 class="text-xl font-serif text-stone-800">{{ assetData.assetTitle }}</h1>
-                <p class="text-xs font-mono uppercase text-stone-600">{{ assetData.fileType }} • {{ assetData.fileSize }}</p>
-              </div>
-            </div>
-          </div>
+              {{ crumb.label }}
+            </router-link>
+            <span v-else class="font-bold uppercase tracking-wide text-stone-800 border-b-2 border-orange-400 pb-0.5">
+              {{ crumb.label }}
+            </span>
+            <span v-if="index < breadcrumbs.length - 1" class="text-stone-300">/</span>
+          </template>
+        </nav>
 
-          <!-- Controls -->
-          <div class="flex items-center gap-3">
-            <!-- Zoom Controls -->
-            <div class="flex items-center bg-white rounded-lg border-2 border-stone-800 overflow-hidden">
-              <Button variant="ghost" size="icon" @click="zoomOut" class="rounded-none">
-                <ZoomOut class="w-4 h-4" />
+        <!-- Toolbar -->
+        <div class="bg-stone-200 rounded-xl border-2 border-stone-800 shadow-[4px_4px_0px_0px_rgba(43,38,38,1)] p-4 mb-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <!-- Back Button & Title -->
+            <div class="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                @click="goBack"
+                class="flex items-center gap-2 hover:bg-stone-300"
+              >
+                <ArrowLeft class="w-5 h-5" />
+                <span class="font-bold hidden sm:inline">Back</span>
               </Button>
-              <span class="px-3 font-mono font-bold text-sm min-w-[60px] text-center">{{ zoomLevel }}%</span>
-              <Button variant="ghost" size="icon" @click="zoomIn" class="rounded-none">
-                <ZoomIn class="w-4 h-4" />
-              </Button>
-            </div>
-
-            <!-- Page Navigation -->
-            <div class="flex items-center bg-white rounded-lg border-2 border-stone-800 overflow-hidden">
-              <Button variant="ghost" size="icon" @click="prevPage" :disabled="currentPage === 1" class="rounded-none">
-                <ChevronLeft class="w-4 h-4" />
-              </Button>
-              <span class="px-3 font-mono text-sm">
-                <span class="font-bold">{{ currentPage }}</span>
-                <span class="text-stone-400 mx-1">/</span>
-                <span class="font-bold">{{ assetData.totalPages }}</span>
-              </span>
-              <Button variant="ghost" size="icon" @click="nextPage" :disabled="currentPage === assetData.totalPages" class="rounded-none">
-                <ChevronRight class="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div class="hidden md:block w-px h-8 bg-stone-300" />
-
-            <!-- Action Buttons -->
-            <Button variant="outline" class="hidden md:flex items-center gap-2 border-2 border-stone-300">
-              <Printer class="w-4 h-4" />
-              <span class="font-bold">Print</span>
-            </Button>
-            
-            <Button class="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white border-2 border-stone-800 shadow-[2px_2px_0px_0px_rgba(43,38,38,1)]">
-              <Download class="w-4 h-4" />
-              <span class="font-bold">Download</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Document Viewer -->
-      <div class="bg-stone-700 rounded-xl border-2 border-stone-800 shadow-inner overflow-hidden min-h-[600px] lg:min-h-[800px]">
-        <div class="relative w-full h-full flex items-start justify-center p-8 lg:p-12">
-          <!-- Background Pattern -->
-          <div class="absolute inset-0 opacity-20">
-            <img src="https://placehold.co/1212x982" alt="" class="w-full h-full object-cover" />
-          </div>
-          
-          <!-- Document Preview -->
-          <div 
-            class="relative bg-white shadow-2xl max-w-sm lg:max-w-md overflow-hidden"
-            :style="{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }"
-          >
-            <!-- Paper Texture Overlay -->
-            <div class="absolute inset-0 opacity-30 mix-blend-multiply">
-              <img src="https://placehold.co/316x1100" alt="" class="w-full h-full object-cover" />
-            </div>
-            
-            <!-- Watermark -->
-            <div class="absolute inset-0 overflow-hidden pointer-events-none">
-              <div class="absolute -left-20 bottom-40 -rotate-45 text-black/5 text-7xl lg:text-8xl font-black whitespace-nowrap">
-                CINEARCHIVE
-              </div>
-            </div>
-
-            <!-- Document Content -->
-            <div class="relative p-8 lg:p-12">
-              <!-- Header -->
-              <div class="border-b-2 border-black/10 pb-6 mb-8">
-                <p class="font-mono text-xs uppercase tracking-widest text-gray-400 mb-2">
-                  CineArchive<br/>Original
-                </p>
-                <h2 class="font-serif text-4xl lg:text-5xl text-black leading-tight">
-                  The<br/>Silent<br/>Echo
-                </h2>
-              </div>
-
-              <!-- Credits -->
-              <div class="text-center mb-8">
-                <p class="font-serif text-xs uppercase tracking-wider text-gray-900 font-bold mb-1">Screenplay by</p>
-                <p class="font-serif text-lg text-gray-900">{{ assetData.screenplayBy }}</p>
-                <p class="font-mono text-xs text-gray-500 mt-2">{{ assetData.draftInfo }}</p>
-              </div>
-
-              <!-- Scene Content -->
-              <div class="space-y-6 font-serif text-gray-900 leading-relaxed">
-                <div>
-                  <p class="text-sm uppercase tracking-wide text-gray-500 mb-2">Scene 1</p>
-                  <p class="font-bold tracking-wide">EXT. MOUNTAIN VILLAGE - DAWN</p>
+              
+              <div class="hidden sm:block w-px h-8 bg-stone-300" />
+              
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-10 bg-stone-100 rounded-lg border border-stone-300 flex items-center justify-center">
+                  <FileText class="w-5 h-5 text-teal-600" />
                 </div>
-                
-                <p>
-                  Mist clings to the pines like a heavy blanket. The silence is profound, 
-                  broken only by the distant, harsh CAW of a crow. The village looks abandoned, 
-                  though thin smoke rises lazily from a single chimney near the ridge.
-                </p>
-
-                <p>
-                  We PAN across empty streets. Shutters bang rhythmically against stone walls. 
-                  A bicycle lies rusted in a ditch, half-swallowed by wildflowers.
-                </p>
-
-                <p class="text-right font-bold tracking-wider">CUT TO:</p>
-
                 <div>
-                  <p class="text-sm uppercase tracking-wide text-gray-500 mb-2">Scene 2</p>
-                  <p class="font-bold tracking-wide">INT. TOWN HALL BASEMENT - DAY</p>
+                  <h1 class="text-lg md:text-xl font-serif text-stone-800 leading-tight">{{ currentAssetConfig?.title }}</h1>
+                  <p class="text-xs font-mono uppercase text-stone-600">{{ currentAssetConfig?.type }} • PDF</p>
                 </div>
-
-                <p>
-                  Dust motes dance in a sharp shaft of sunlight piercing the gloom. 
-                  <span class="font-bold uppercase">Maya</span> (20s, disheveled, determined) 
-                  pushes open a heavy oak door. It CREAKS, protesting decades of disuse.
-                </p>
               </div>
+            </div>
 
-              <!-- Footer -->
-              <div class="mt-12 pt-4 border-t border-black/5 flex justify-between text-xs font-mono uppercase tracking-wide text-gray-400">
-                <span>Restricted Access • Educational Use Only</span>
-                <span>Page {{ currentPage }} of {{ assetData.totalPages }}</span>
-              </div>
+            <!-- Controls -->
+            <div class="flex items-center gap-3 ml-auto">
+              <!-- Action Buttons -->
+              <Button 
+                variant="outline" 
+                class="hidden md:flex items-center gap-2 border-2 border-stone-300"
+                @click="printAsset"
+              >
+                <Printer class="w-4 h-4" />
+                <span class="font-bold">Print</span>
+              </Button>
+              
+              <Button 
+                @click="downloadAsset"
+                class="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white border-2 border-stone-800 shadow-[2px_2px_0px_0px_rgba(43,38,38,1)]"
+              >
+                <Download class="w-4 h-4" />
+                <span class="font-bold">Download</span>
+              </Button>
             </div>
           </div>
         </div>
 
-        <!-- Page Indicator (Mobile) -->
-        <div class="flex justify-center pb-6 lg:hidden">
-          <div class="bg-stone-800/90 text-stone-50 px-6 py-2 rounded-full text-sm font-medium backdrop-blur">
-            Page {{ currentPage }} of {{ assetData.totalPages }}
+        <!-- Document Viewer (PDF Iframe) -->
+        <div class="bg-stone-700 rounded-xl border-2 border-stone-800 shadow-inner overflow-hidden min-h-[600px] lg:min-h-[800px] relative">
+          <iframe 
+            v-if="assetUrl"
+            :src="assetUrl"
+            class="w-full h-full absolute inset-0 bg-white"
+            frameborder="0"
+          ></iframe>
+          <div v-else class="absolute inset-0 flex items-center justify-center text-white">
+            <p>File tidak dapat ditampilkan.</p>
           </div>
         </div>
-      </div>
+      </template>
     </main>
 
     <Footer />

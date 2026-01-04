@@ -1,167 +1,461 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { api } from '@/lib/api'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Upload, FileText } from 'lucide-vue-next'
+import { Card, CardContent } from '@/components/ui/card'
+import { 
+  Upload, Film, Plus, Trash2, Loader2, Send, ArrowLeft,
+  CheckCircle, XCircle, X
+} from 'lucide-vue-next'
+import Toast from '@/components/Toast.vue'
+import RichTextEditor from '@/components/RichTextEditor.vue'
+import { useHead } from '@unhead/vue'
 
-const filmTitle = ref('')
-const mainVideoLink = ref('')
-const trailerLink = ref('')
-const posterPhilosophy = ref('')
-const characterCount = ref(0)
+useHead({
+  title: 'Upload Karya Baru - CineArchive'
+})
 
-const updateCharCount = () => {
-  characterCount.value = posterPhilosophy.value.length
+const router = useRouter()
+const loading = ref(false)
+const categories = ref([])
+
+// Form data
+const form = ref({
+  judul: '',
+  category_id: '',
+  sinopsis: '',
+  tahun_karya: new Date().getFullYear(),
+  link_video_utama: '',
+  link_trailer: '',
+  gambar_poster: '',
+  deskripsi_lengkap: '',
+  file_naskah: '',
+  file_storyboard: '',
+  file_rab: '',
+  crew: [{ jabatan: '', anggota: [''] }]
+})
+
+const formError = ref('')
+const uploading = ref(false)
+const toast = ref({ show: false, type: 'success', message: '' })
+
+const showToast = (type, message) => {
+  toast.value = { show: true, type, message }
+  setTimeout(() => { toast.value.show = false }, 3000)
 }
 
-const documents = ref([
-  { id: 'naskah', title: 'Naskah', fileType: 'PDF', file: null, disabled: false },
-  { id: 'storyboard', title: 'Storyboard', fileType: 'PDF', file: null, disabled: false },
-  { id: 'rab', title: 'RAB (Budget)', fileType: 'PDF', file: null, disabled: true }
-])
+const handleFileUpload = async (event, fieldName) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  // Validasi ukuran (max 10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    showToast('error', 'Ukuran file terlalu besar (maksimal 10MB)')
+    event.target.value = '' // Reset input
+    return
+  }
+
+  // Validasi tipe file jika perlu (misal poster harus gambar)
+  if (fieldName === 'gambar_poster' && !file.type.startsWith('image/')) {
+    showToast('error', 'File harus berupa gambar')
+    event.target.value = ''
+    return
+  }
+  
+  if ((fieldName === 'file_naskah' || fieldName === 'file_storyboard' || fieldName === 'file_rab') && file.type !== 'application/pdf') {
+     showToast('error', 'File harus berupa PDF')
+     event.target.value = ''
+     return
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  uploading.value = true
+  try {
+    // Gunakan endpoint upload yang sudah dibuat
+    const res = await api.upload('/api/upload', formData)
+    
+    if (res.success) {
+      form.value[fieldName] = res.data.url
+      showToast('success', 'File berhasil diupload')
+    }
+  } catch (err) {
+    console.error('Upload failed:', err)
+    showToast('error', 'Gagal mengupload file: ' + (err.message || 'Server error'))
+    event.target.value = '' // Reset input pada error
+  } finally {
+    uploading.value = false
+  }
+}
+
+// Fetch categories
+const fetchCategories = async () => {
+  try {
+    const res = await api.get('/api/categories')
+    categories.value = res.data
+  } catch (err) {
+    console.error('Failed to fetch categories:', err)
+  }
+}
+
+// Crew management
+const addCrew = () => {
+  form.value.crew.push({ jabatan: '', anggota: [''] })
+}
+
+const removeCrew = (index) => {
+  form.value.crew.splice(index, 1)
+}
+
+const addCrewMember = (crewIndex) => {
+  form.value.crew[crewIndex].anggota.push('')
+}
+
+const removeCrewMember = (crewIndex, memberIndex) => {
+  form.value.crew[crewIndex].anggota.splice(memberIndex, 1)
+}
+
+// Submit form
+const submitFilm = async () => {
+  formError.value = ''
+  
+  if (!form.value.judul.trim()) {
+    formError.value = 'Judul film wajib diisi'
+    return
+  }
+  if (!form.value.category_id) {
+    formError.value = 'Kategori wajib dipilih'
+    return
+  }
+
+  loading.value = true
+  try {
+    const cleanCrew = form.value.crew
+      .filter(c => c.jabatan.trim())
+      .map(c => ({
+        jabatan: c.jabatan.trim(),
+        anggota: c.anggota.filter(a => a.trim())
+      }))
+
+    const payload = {
+      ...form.value,
+      category_id: parseInt(form.value.category_id),
+      tahun_karya: parseInt(form.value.tahun_karya),
+      crew: cleanCrew.length > 0 ? cleanCrew : null
+    }
+
+    await api.post('/api/films', payload)
+    showToast('success', 'Film berhasil disubmit! Menunggu review admin.')
+    
+    setTimeout(() => {
+      router.push('/my-films')
+    }, 1500)
+  } catch (err) {
+    formError.value = err.message || 'Gagal menyimpan film'
+    showToast('error', formError.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(fetchCategories)
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F2EEE3]">
+  <div class="min-h-screen flex flex-col bg-[#F2EEE3]">
     <Navbar />
 
     <main class="max-w-4xl mx-auto px-4 md:px-8 pt-28 pb-16">
       <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b-2 border-stone-800/30 mb-8">
+      <div class="flex items-center gap-4 mb-8">
+        <Button variant="outline" size="sm" @click="router.push('/my-films')">
+          <ArrowLeft class="w-4 h-4" />
+        </Button>
         <div>
-          <h1 class="text-4xl md:text-5xl font-display text-stone-900 mb-2">Upload Your Beautiful Scene</h1>
-          <p class="text-lg font-body text-stone-500">Submit your project for archival and teacher review.</p>
-        </div>
-        <div class="flex gap-3">
-          <Button variant="outline" class="bg-white">Save Draft</Button>
-          <Button variant="secondary">Submit for Review</Button>
+          <h1 class="text-3xl md:text-4xl font-display text-stone-900">Upload Film Baru</h1>
+          <p class="text-stone-500">Film akan direview oleh admin sebelum dipublikasi.</p>
         </div>
       </div>
 
-      <!-- Film Details Section -->
-      <section class="mb-10">
-        <h2 class="text-2xl font-display text-stone-900 mb-4 flex items-center gap-3">
-          <span class="w-2 h-6 bg-brand-teal"></span>
-          Film Details
-        </h2>
+      <!-- Error Message -->
+      <div v-if="formError" class="mb-6 p-4 bg-red-50 border-2 border-red-200 text-red-600">
+        {{ formError }}
+      </div>
+
+      <form @submit.prevent="submitFilm" class="space-y-8">
+        <!-- Basic Info -->
         <Card>
-          <CardContent class="p-6 space-y-6">
-            <div>
-              <label class="block text-lg font-bold font-body text-stone-900 mb-2">Film Title</label>
-              <Input 
-                v-model="filmTitle"
-                placeholder="Enter the official title of your film"
-                class="bg-stone-100"
-              />
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <CardContent class="p-6 space-y-4">
+            <h2 class="text-xl font-bold flex items-center gap-2 mb-4">
+              <Film class="w-5 h-5" /> Informasi Dasar
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="md:col-span-2">
+                <label class="block text-sm font-bold mb-2">Judul Film *</label>
+                <Input v-model="form.judul" placeholder="Masukkan judul film" />
+              </div>
+
               <div>
-                <label class="block text-lg font-bold font-body text-stone-900 mb-2">Main Video Link (Embed)</label>
-                <Input 
-                  v-model="mainVideoLink"
-                  placeholder="https://..."
-                  class="bg-stone-100"
-                />
+                <label class="block text-sm font-bold mb-2">Kategori *</label>
+                <select 
+                  v-model="form.category_id"
+                  class="w-full h-10 px-3 border-2 border-black bg-white text-sm"
+                >
+                  <option value="">Pilih kategori</option>
+                  <option v-for="cat in categories" :key="cat.category_id" :value="cat.category_id">
+                    {{ cat.nama_kategori }}
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-bold mb-2">Tahun Karya</label>
+                <Input v-model="form.tahun_karya" type="number" min="1900" :max="new Date().getFullYear()" />
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-sm font-bold mb-2">Sinopsis</label>
+                <textarea 
+                  v-model="form.sinopsis"
+                  rows="4"
+                  placeholder="Ceritakan sinopsis film..."
+                  class="w-full p-3 border-2 border-black bg-white text-sm resize-none"
+                ></textarea>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Links -->
+        <Card>
+          <CardContent class="p-6 space-y-4">
+            <h2 class="text-xl font-bold flex items-center gap-2 mb-4">
+              <Upload class="w-5 h-5" /> Link Video
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold mb-2">Link Video Utama</label>
+                <Input v-model="form.link_video_utama" placeholder="https://youtube.com/..." />
               </div>
               <div>
-                <label class="block text-lg font-bold font-body text-stone-900 mb-2">Trailer Link</label>
-                <Input 
-                  v-model="trailerLink"
-                  placeholder="https://..."
-                  class="bg-stone-100"
+                <label class="block text-sm font-bold mb-2">Link Trailer</label>
+                <Input v-model="form.link_trailer" placeholder="https://youtube.com/..." />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Visual Assets -->
+        <Card>
+          <CardContent class="p-6 space-y-4">
+            <h2 class="text-xl font-bold mb-4">Visual & Dokumen</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold mb-2">Gambar Poster</label>
+                <div class="space-y-3">
+                  <div v-if="form.gambar_poster" class="relative w-40 h-60 bg-stone-100 border border-stone-300 rounded overflow-hidden">
+                    <img :src="form.gambar_poster" class="w-full h-full object-cover" />
+                    <button 
+                      type="button" 
+                      @click="form.gambar_poster = ''"
+                      class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md"
+                    >
+                      <X class="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <div class="flex items-center gap-2">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      @change="(e) => handleFileUpload(e, 'gambar_poster')"
+                      class="block w-full text-sm text-stone-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:border-0 file:text-sm file:font-semibold
+                        file:bg-brand-teal file:text-white
+                        hover:file:bg-teal-700
+                        cursor-pointer"
+                      :disabled="uploading"
+                    />
+                    <Loader2 v-if="uploading" class="w-5 h-5 animate-spin text-stone-400" />
+                  </div>
+                  <p class="text-xs text-stone-500">Format: JPG, PNG. Max 10MB.</p>
+                </div>
+              </div>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-bold mb-2">File Naskah (PDF)</label>
+                  <div class="flex items-center gap-2">
+                    <input 
+                      type="file" 
+                      accept=".pdf"
+                      @change="(e) => handleFileUpload(e, 'file_naskah')"
+                      class="block w-full text-sm text-stone-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:border-0 file:text-sm file:font-semibold
+                        file:bg-stone-800 file:text-white
+                        hover:file:bg-stone-700
+                        cursor-pointer"
+                      :disabled="uploading"
+                    />
+                    <CheckCircle v-if="form.file_naskah" class="w-5 h-5 text-green-500" />
+                  </div>
+                  <p v-if="form.file_naskah" class="text-xs text-green-600 mt-1 truncate">
+                    File terupload: {{ form.file_naskah.split('/').pop() }}
+                  </p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-bold mb-2">File Storyboard (PDF)</label>
+                  <div class="flex items-center gap-2">
+                    <input 
+                      type="file" 
+                      accept=".pdf"
+                      @change="(e) => handleFileUpload(e, 'file_storyboard')"
+                      class="block w-full text-sm text-stone-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:border-0 file:text-sm file:font-semibold
+                        file:bg-stone-800 file:text-white
+                        hover:file:bg-stone-700
+                        cursor-pointer"
+                      :disabled="uploading"
+                    />
+                    <CheckCircle v-if="form.file_storyboard" class="w-5 h-5 text-green-500" />
+                  </div>
+                  <p v-if="form.file_storyboard" class="text-xs text-green-600 mt-1 truncate">
+                    File terupload: {{ form.file_storyboard.split('/').pop() }}
+                  </p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-bold mb-2">File RAB (PDF)</label>
+                  <div class="flex items-center gap-2">
+                    <input 
+                      type="file" 
+                      accept=".pdf"
+                      @change="(e) => handleFileUpload(e, 'file_rab')"
+                      class="block w-full text-sm text-stone-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:border-0 file:text-sm file:font-semibold
+                        file:bg-stone-800 file:text-white
+                        hover:file:bg-stone-700
+                        cursor-pointer"
+                      :disabled="uploading"
+                    />
+                    <CheckCircle v-if="form.file_rab" class="w-5 h-5 text-green-500" />
+                  </div>
+                  <p v-if="form.file_rab" class="text-xs text-green-600 mt-1 truncate">
+                    File terupload: {{ form.file_rab.split('/').pop() }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="md:col-span-2 mt-4">
+                <label class="block text-sm font-bold mb-2">Informasi Tambahan (Backstory, Director Statement, dll)</label>
+                <RichTextEditor 
+                  v-model="form.deskripsi_lengkap"
+                  placeholder="Ceritakan sejarah pembuatan film, statement sutradara, atau info menarik lainnya..."
                 />
               </div>
             </div>
           </CardContent>
         </Card>
-      </section>
 
-      <!-- Document Uploads Section -->
-      <section class="mb-10">
-        <h2 class="text-2xl font-display text-stone-900 mb-4 flex items-center gap-3">
-          <span class="w-2 h-6 bg-brand-teal"></span>
-          Document Uploads
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card 
-            v-for="doc in documents" 
-            :key="doc.id"
-            :class="{ 'opacity-70': doc.disabled }"
-          >
-            <CardContent class="p-4">
-              <div class="flex items-center justify-between mb-4">
-                <span class="text-lg font-bold font-body" :class="doc.disabled ? 'text-gray-500' : 'text-stone-900'">
-                  {{ doc.title }}
-                </span>
-                <Badge variant="secondary" class="text-xs">{{ doc.fileType }}</Badge>
-              </div>
-              <div 
-                :class="[
-                  'h-32 border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors',
-                  doc.disabled 
-                    ? 'bg-gray-50 border-gray-300' 
-                    : 'bg-stone-100 border-stone-800/40 hover:border-stone-800'
-                ]"
-              >
-                <Upload v-if="!doc.disabled" class="w-8 h-8 text-stone-400 mb-2" />
-                <span 
-                  class="text-sm font-bold font-body"
-                  :class="doc.disabled ? 'text-gray-400' : 'text-stone-500'"
-                >
-                  {{ doc.disabled ? 'Upload restricted for this student tier' : 'Click to upload' }}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+        <!-- Crew -->
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold">Crew Film</h2>
+              <Button type="button" variant="outline" size="sm" @click="addCrew" class="gap-1">
+                <Plus class="w-4 h-4" /> Tambah Jabatan
+              </Button>
+            </div>
 
-      <!-- Visual Assets Section -->
-      <section>
-        <h2 class="text-2xl font-display text-stone-900 mb-4 flex items-center gap-3">
-          <span class="w-2 h-6 bg-brand-teal"></span>
-          Visual Assets
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Film Poster Upload -->
-          <Card class="h-fit">
-            <CardContent class="p-4">
-              <label class="block text-lg font-bold font-body text-stone-900 mb-4">Film Poster</label>
-              <div class="aspect-[2/3] border-2 border-stone-800 bg-white flex flex-col items-center justify-center cursor-pointer hover:bg-stone-50 transition-colors">
-                <div class="w-16 h-16 rounded-full bg-stone-100 border-2 border-stone-800 shadow-brutal-sm flex items-center justify-center mb-4">
-                  <Upload class="w-6 h-6 text-stone-600" />
+            <div class="space-y-4">
+              <div v-for="(crew, crewIdx) in form.crew" :key="crewIdx" class="p-4 bg-stone-100 border border-stone-300">
+                <div class="flex items-center gap-2 mb-3">
+                  <Input 
+                    v-model="crew.jabatan" 
+                    placeholder="Jabatan (cth: Sutradara, Penulis)"
+                    class="flex-1"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    class="text-red-600"
+                    @click="removeCrew(crewIdx)"
+                    v-if="form.crew.length > 1"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </Button>
                 </div>
-                <span class="text-base font-bold font-body text-stone-900">Upload Poster</span>
-                <span class="text-xs font-body text-stone-500 mt-1">PNG, JPG up to 10MB</span>
-              </div>
-            </CardContent>
-          </Card>
 
-          <!-- Poster Philosophy -->
-          <Card>
-            <CardContent class="p-4">
-              <div class="flex items-center justify-between mb-2">
-                <label class="text-lg font-bold font-body text-stone-900">Poster Philosophy</label>
-                <span class="text-xs font-bold font-body text-stone-500">{{ characterCount }} / 500 characters</span>
+                <div class="space-y-2 ml-4">
+                  <div v-for="(member, memberIdx) in crew.anggota" :key="memberIdx" class="flex items-center gap-2">
+                    <span class="text-xs text-stone-500 w-4">{{ memberIdx + 1 }}.</span>
+                    <Input 
+                      v-model="crew.anggota[memberIdx]" 
+                      placeholder="Nama anggota"
+                      class="flex-1"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm"
+                      @click="removeCrewMember(crewIdx, memberIdx)"
+                      v-if="crew.anggota.length > 1"
+                    >
+                      <X class="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    @click="addCrewMember(crewIdx)"
+                    class="text-xs"
+                  >
+                    + Tambah Anggota
+                  </Button>
+                </div>
               </div>
-              <textarea 
-                v-model="posterPhilosophy"
-                @input="updateCharCount"
-                maxlength="500"
-                rows="12"
-                placeholder="Explain the artistic choices behind your poster design. What do the colors represent? How does it connect to the film's theme?"
-                class="w-full p-4 bg-white border-2 border-black shadow-brutal font-body text-base text-stone-800 placeholder:text-neutral-500 resize-none focus:outline-none focus:ring-2 focus:ring-brand-teal"
-              ></textarea>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Submit -->
+        <div class="flex gap-4 justify-end">
+          <Button type="button" variant="outline" @click="router.push('/my-films')">
+            Batal
+          </Button>
+          <Button type="submit" :disabled="loading" class="gap-2">
+            <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
+            <Send v-else class="w-4 h-4" />
+            Submit untuk Review
+          </Button>
         </div>
-      </section>
+      </form>
     </main>
 
     <Footer />
+
+    <!-- Toast -->
+    <!-- Toast -->
+    <Toast 
+      :show="toast.show" 
+      :type="toast.type" 
+      :message="toast.message" 
+      @close="toast.show = false" 
+    />
   </div>
 </template>

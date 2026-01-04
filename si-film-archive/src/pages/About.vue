@@ -3,10 +3,18 @@ import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Film, Users, Archive, Award } from 'lucide-vue-next'
+import { useHead } from '@unhead/vue'
+
+useHead({
+  title: 'Tentang CineArchive - Visi & Misi',
+  meta: [
+    { name: 'description', content: 'Pelajari lebih lanjut tentang CineArchive, platform kearsipan film digital yang didedikasikan untuk mahasiswa.' }
+  ]
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F2EEE3]">
+  <div class="min-h-screen flex flex-col bg-[#F2EEE3]">
     <Navbar />
     <main class="pt-28 pb-16">
       <div class="max-w-4xl mx-auto px-4 md:px-8">

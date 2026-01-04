@@ -3,22 +3,24 @@
 @theme {
   /* Brand Colors */
   --color-brand-red: #ef4444;
-  --color-brand-teal: #265C5C;
+  --color-brand-teal: #265c5c;
   --color-brand-orange: #fdba74;
   --color-brand-cream: #e7e5e4;
-  
+
   /* Fonts */
-  --font-display: 'Playfair Display', serif;
-  --font-heading: 'Bebas Neue', sans-serif;
-  --font-body: 'Poppins', sans-serif;
-  --font-accent: 'Cormorant Garamond', serif;
-  
+  --font-display: "Playfair Display", serif;
+  --font-heading: "Bebas Neue", sans-serif;
+  --font-body: "Poppins", sans-serif;
+  --font-accent: "Cormorant Garamond", serif;
+
   /* Brutal Design System Shadows */
-  --shadow-brutal: 4px 4px 0px 0px rgba(0,0,0,0.80);
-  --shadow-brutal-lg: 6px 6px 0px 0px rgba(0,0,0,1);
-  --shadow-brutal-sm: 2px 2px 0px 0px rgba(0,0,0,1);
-  --shadow-brutal-white: 4px 4px 0px 0px rgba(255,255,255,0.10);
-  
+  --shadow-brutal: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-brutal-lg: 10px 10px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-brutal-md: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-brutal-sm: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-brutal-xs: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-brutal-white: 4px 4px 0px 0px rgba(255, 255, 255, 0.1);
+
   /* Custom Spacing */
   --spacing-18: 4.5rem;
   --spacing-88: 22rem;
@@ -29,34 +31,79 @@
   --radius-md: 0rem;
   --radius-lg: 0rem;
   --radius-xl: 0rem;
+
+  /* Animations */
+  --animate-fade-in-up: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-fade-in: fade-in 0.6s ease-out forwards;
+  --animate-scale-in: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  
+  @keyframes fade-in-up {
+    0% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes scale-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+/* Utility Classes for 3D Transforms */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.rotate-y-6 {
+  transform: rotateY(6deg);
+}
+
+.shadow-brutal-xl {
+  box-shadow: 14px 14px 0px 0px rgba(0, 0, 0, 1);
 }
 
 /* shadcn/ui CSS Variables - Customized for Brutal Design */
 :root {
   --background: 231 229 228; /* brand-cream */
   --foreground: 28 25 23; /* stone-900 */
-  
+
   --card: 250 250 249; /* stone-50 */
   --card-foreground: 28 25 23;
-  
+
   --popover: 250 250 249;
   --popover-foreground: 28 25 23;
-  
+
   --primary: 38 92 92; /* brand-teal */
   --primary-foreground: 250 250 249;
-  
+
   --secondary: 253 186 116; /* brand-orange */
   --secondary-foreground: 28 25 23;
-  
+
   --muted: 214 211 209; /* stone-300 */
   --muted-foreground: 87 83 78; /* stone-600 */
-  
+
   --accent: 239 68 68; /* brand-red */
   --accent-foreground: 250 250 249;
-  
+
   --destructive: 239 68 68;
   --destructive-foreground: 250 250 249;
-  
+
   --border: 28 25 23; /* black border for brutal style */
   --input: 28 25 23;
   --ring: 38 92 92; /* brand-teal */
@@ -80,18 +127,69 @@ body {
 
 /* Font utility classes */
 .font-display {
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
 }
 
 .font-heading {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: "Bebas Neue", sans-serif;
   letter-spacing: 0.05em;
 }
 
 .font-body {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .font-accent {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: "Cormorant Garamond", serif;
 }
+
+/* Rich Text / Prose Styles */
+.prose h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #000;
+}
+
+.prose p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+
+.prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+
+.prose blockquote {
+  border-left: 4px solid #000;
+  padding-left: 1rem;
+  font-style: italic;
+  margin: 1.5rem 0;
+  color: #444;
+}
+
+.prose strong {
+  font-weight: bold;
+  color: #000;
+}
+
+.prose em {
+  font-style: italic;
+}
+
+/* Brutal Shadow Utility Classes */
+.shadow-brutal-xs { box-shadow: var(--shadow-brutal-xs); }
+.shadow-brutal-sm { box-shadow: var(--shadow-brutal-sm); }
+.shadow-brutal-md { box-shadow: var(--shadow-brutal-md); }
+.shadow-brutal { box-shadow: var(--shadow-brutal); }
+.shadow-brutal-lg { box-shadow: var(--shadow-brutal-lg); }

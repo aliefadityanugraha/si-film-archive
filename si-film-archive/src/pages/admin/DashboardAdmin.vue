@@ -1,86 +1,80 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import AdminSidebar from '@/components/AdminSidebar.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { api } from '@/lib/api'
 import { 
-  Upload, FileDown, ListChecks, FileEdit, Users, Grid3X3, 
-  Flag, TrendingUp, Film, Eye, Clock, ChevronRight
+  LayoutDashboard, Upload, FileDown, ListChecks, FileEdit, Users, Grid3X3, 
+  Flag, TrendingUp, Film, Eye, Clock, ChevronRight, Loader2
 } from 'lucide-vue-next'
 
 const sidebarCollapsed = ref(false)
+const loading = ref(true)
 
 const stats = ref([
-  { label: 'Total Films', value: '1,240', change: '+12%', changeType: 'positive', icon: Film },
-  { label: 'Active Users', value: '3,842', change: '+8%', changeType: 'positive', icon: Users },
-  { label: 'Views Today', value: '12.4K', change: '+24%', changeType: 'positive', icon: Eye },
-  { label: 'Pending Tasks', value: '18', change: '-3', changeType: 'negative', icon: Clock },
+  { label: 'Total Films', value: '0', change: '0', changeType: 'positive', icon: Film },
+  { label: 'Active Users', value: '0', change: '0', changeType: 'positive', icon: Users },
+  { label: 'Total Categories', value: '0', change: '0', changeType: 'positive', icon: Grid3X3 },
+  { label: 'Pending Films', value: '0', change: '0', changeType: 'negative', icon: Clock },
 ])
 
-const tasks = ref([
-  { 
-    id: 1, 
-    name: 'Review RAB', 
-    subject: 'Student Film A', 
-    status: 'Pending', 
-    statusColor: 'bg-amber-100',
-    icon: FileEdit,
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-900',
-    action: 'Open'
-  },
-  { 
-    id: 2, 
-    name: 'Role Request', 
-    subject: 'Jane Doe', 
-    subjectNote: '(Student → Creator)',
-    status: 'Review', 
-    statusColor: 'bg-blue-100',
-    icon: Users,
-    iconBg: 'bg-purple-100',
-    iconColor: 'text-purple-900',
-    action: 'Approve',
-    actionPrimary: true
-  },
-  { 
-    id: 3, 
-    name: 'Grade Recap', 
-    subject: 'Film History 101', 
-    status: 'Ready', 
-    statusColor: 'bg-green-100',
-    icon: Grid3X3,
-    iconBg: 'bg-green-100',
-    iconColor: 'text-green-900',
-    action: 'CSV',
-    actionIcon: FileDown
-  },
-  { 
-    id: 4, 
-    name: 'Content Flag', 
-    subject: 'Short Film: "The Void"', 
-    status: 'Urgent', 
-    statusColor: 'bg-red-100',
-    icon: Flag,
-    iconBg: 'bg-red-100',
-    iconColor: 'text-red-900',
-    action: 'Review'
-  },
-])
+const tasks = ref([])
+const recentActivities = ref([])
 
-const recentActivities = ref([
-  { user: 'John Smith', action: 'uploaded', target: 'Documentary: City Lights', time: '2 hours ago' },
-  { user: 'Sarah Lee', action: 'approved', target: 'Student Film B', time: '4 hours ago' },
-  { user: 'Mike Chen', action: 'flagged', target: 'Short Film: Echoes', time: '5 hours ago' },
-  { user: 'Admin', action: 'updated', target: 'System Settings', time: '1 day ago' },
-])
+const fetchDashboardStats = async () => {
+  loading.value = true
+  try {
+    const response = await api.get('/api/admin/stats')
+    if (response.data?.success) {
+      const data = response.data.data
+      
+      // Update stats
+      stats.value[0].value = data.totalFilms.toString()
+      stats.value[1].value = data.totalUsers.toString()
+      stats.value[2].value = data.totalCategories.toString()
+      stats.value[3].value = data.pendingFilms.toString()
+
+      // Update tasks (pending films)
+      tasks.value = data.recentPendingFilms.map(film => ({
+        id: film.film_id,
+        name: 'Review Film',
+        subject: film.judul,
+        subjectNote: `by ${film.creator?.name || 'Unknown'}`,
+        status: 'Pending',
+        statusColor: 'bg-amber-100',
+        icon: FileEdit,
+        iconBg: 'bg-blue-100',
+        iconColor: 'text-blue-900',
+        action: 'Review',
+        actionPrimary: true
+      }))
+
+      // Update recent activities
+      recentActivities.value = data.recentActivities.map(act => ({
+        ...act,
+        time: act.time ? new Date(act.time).toLocaleDateString() : 'Recently'
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch dashboard stats:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchDashboardStats()
+})
 </script>
 
 <template>
   <div class="min-h-screen bg-stone-100">
     <AdminSidebar @update:collapsed="sidebarCollapsed = $event" />
     
-    <main :class="['p-8 transition-all duration-300', sidebarCollapsed ? 'ml-16' : 'ml-64']">
+    <main :class="['p-4 md:p-8 transition-all duration-300', sidebarCollapsed ? 'ml-16' : 'ml-64']">
       <nav class="flex items-center gap-2 text-xs font-mono uppercase tracking-wider mb-4">
         <a href="/" class="text-brand-teal hover:underline">Home</a>
         <span class="text-stone-400">/</span>
@@ -89,15 +83,13 @@ const recentActivities = ref([
         <Badge variant="outline" class="bg-orange-100 text-orange-700 border-orange-300">Dashboard</Badge>
       </nav>
 
-      <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-8">
-        <div class="flex items-start gap-4">
-          <div class="w-1 h-20 bg-amber-500 rounded-full"></div>
-          <div>
-            <h1 class="font-display text-4xl text-stone-900">System Overview</h1>
-            <p class="text-stone-600 mt-2 max-w-xl">Manage authorized personnel, role assignments, and security clearances.</p>
-          </div>
-        </div>
-        <div class="flex gap-3">
+      <PageHeader 
+        title="System Overview" 
+        description="Monitor system statistics, pending tasks, and recent activities."
+        :icon="LayoutDashboard"
+        icon-color="bg-amber-500"
+      >
+        <template #actions>
           <Button variant="outline" class="gap-2">
             <Upload class="w-4 h-4" />
             Quick Upload
@@ -106,12 +98,18 @@ const recentActivities = ref([
             <FileDown class="w-4 h-4" />
             Report
           </Button>
-        </div>
+        </template>
+      </PageHeader>
+
+      <div v-if="loading" class="flex flex-col items-center justify-center min-h-[400px]">
+        <Loader2 class="w-12 h-12 animate-spin text-brand-teal mb-4" />
+        <p class="text-stone-500 font-mono uppercase tracking-widest animate-pulse">Synchronizing Data...</p>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        <Card v-for="stat in stats" :key="stat.label">
-          <CardContent class="p-6">
+      <template v-else>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+          <Card v-for="stat in stats" :key="stat.label">
+            <CardContent class="p-6">
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-bold uppercase tracking-wider text-stone-600 border-b-2 border-pink-700 pb-1">{{ stat.label }}</span>
               <component :is="stat.icon" class="w-5 h-5 text-stone-400" />
@@ -193,6 +191,7 @@ const recentActivities = ref([
           </CardContent>
         </Card>
       </div>
+    </template>
     </main>
   </div>
 </template>
