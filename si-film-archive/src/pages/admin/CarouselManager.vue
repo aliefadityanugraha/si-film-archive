@@ -11,6 +11,7 @@ import {
   Plus, Pencil, Trash2, Loader2, ImageIcon, X, Save, AlertTriangle, ArrowUp, ArrowDown
 } from 'lucide-vue-next'
 import Toast from '@/components/Toast.vue'
+import { useToast } from '@/composables/useToast'
 
 const sidebarCollapsed = ref(false)
 const items = ref([])
@@ -30,18 +31,36 @@ const showConfirm = ref(false)
 const confirmData = ref({ title: '', message: '' })
 
 // Toast state
-const toast = ref({ show: false, type: 'success', message: '' })
+const { toast, showToast } = useToast()
 
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => { toast.value.show = false }, 3000)
+const normalizeActiveFlag = (raw) => {
+  const source =
+    typeof raw.is_active !== 'undefined'
+      ? raw.is_active
+      : typeof raw.active !== 'undefined'
+      ? raw.active
+      : typeof raw.status !== 'undefined'
+      ? raw.status
+      : false
+
+  if (typeof source === 'boolean') return source
+  if (typeof source === 'number') return source === 1
+  if (typeof source === 'string') {
+    const v = source.toLowerCase()
+    return v === '1' || v === 'true' || v === 'active' || v === 'yes'
+  }
+  return false
 }
 
 const fetchItems = async () => {
   loading.value = true
   try {
     const res = await api.get('/api/carousel')
-    items.value = res.data
+    const data = Array.isArray(res.data) ? res.data : []
+    items.value = data.map(item => ({
+      ...item,
+      is_active: normalizeActiveFlag(item)
+    }))
   } catch (err) {
     console.error('Failed to fetch carousel items:', err)
     showToast('error', 'Gagal memuat carousel')
@@ -52,9 +71,17 @@ const fetchItems = async () => {
 
 const openModal = (item = null) => {
   editingItem.value = item
-  formData.value = item 
-    ? { ...item }
-    : { title: '', summary: '', quote: '', image_url: '', is_active: true }
+  if (item) {
+    formData.value = {
+      title: item.title || '',
+      summary: item.summary || '',
+      quote: item.quote || '',
+      image_url: item.image_url || '',
+      is_active: normalizeActiveFlag(item)
+    }
+  } else {
+    formData.value = { title: '', summary: '', quote: '', image_url: '', is_active: true }
+  }
   formError.value = ''
   showModal.value = true
 }

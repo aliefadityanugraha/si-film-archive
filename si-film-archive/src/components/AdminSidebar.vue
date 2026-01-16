@@ -1,11 +1,11 @@
 <script setup>
-import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { 
   LayoutDashboard, Shield, Users, Film, Settings, 
   LogOut, ChevronLeft, ChevronRight, Upload, FileText,
-  BarChart3, Bell, HelpCircle, FolderOpen, MessageCircle, ImageIcon
+  BarChart3, Bell, HelpCircle, FolderOpen, ImageIcon
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -18,35 +18,16 @@ watch(isCollapsed, (val) => {
   emit('update:collapsed', val)
 })
 
-const checkScreenSize = () => {
-  if (window.innerWidth < 1024 && !isCollapsed.value) {
-    isCollapsed.value = true
-  }
-}
-
-onMounted(() => {
-  // Check initial size
-  if (window.innerWidth < 1024) {
-    isCollapsed.value = true
-  }
-  window.addEventListener('resize', checkScreenSize)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', checkScreenSize)
-})
-
 const allMenuItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
   { name: 'Access Control', icon: Shield, path: '/admin/rbac' },
   { name: 'Users', icon: Users, path: '/admin/users' },
   { name: 'Categories', icon: FolderOpen, path: '/admin/categories' },
   { name: 'Films', icon: Film, path: '/admin/films' },
-  { name: 'Carousel', icon: ImageIcon, path: '/admin/carousel' },
-  { name: 'Comments', icon: MessageCircle, path: '/admin/comments' },
   { name: 'Uploads', icon: Upload, path: '/admin/uploads' },
   { name: 'Reports', icon: FileText, path: '/admin/reports' },
   { name: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
+  { name: 'Banner', icon: ImageIcon, path: '/admin/carousel' },
 ]
 
 const menuItems = computed(() => {
@@ -98,7 +79,7 @@ const isActive = (path) => route.path === path
             <Film class="w-5 h-5 text-white" />
           </div>
           <div>
-            <span class="font-display text-lg leading-tight block text-stone-900">CineArchive</span>
+            <span class="font-display text-lg leading-tight block text-stone-900">PF Space</span>
             <span class="text-[10px] uppercase tracking-wider text-stone-500 font-body font-bold">Admin Panel</span>
           </div>
         </router-link>
@@ -132,8 +113,7 @@ const isActive = (path) => route.path === path
         :key="item.path"
         :to="item.path"
         :class="[
-          'flex items-center gap-3 py-2 transition-all font-body',
-          isCollapsed ? 'px-2 justify-center' : 'px-3',
+          'flex items-center gap-3 px-3 py-2 transition-all font-body',
           isActive(item.path) 
             ? 'bg-brand-teal text-white border-2 border-stone-900 shadow-brutal-sm' 
             : 'hover:bg-stone-200 text-stone-500 hover:text-stone-900 border-2 border-transparent'

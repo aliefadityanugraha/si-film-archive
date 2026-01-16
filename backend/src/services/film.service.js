@@ -98,11 +98,34 @@ export class FilmService {
       });
   }
 
+  async getBySlug(slug) {
+    return Film.query()
+      .where('slug', slug)
+      .withGraphFetched('[creator(selectBasic), category]')
+      .modifiers({
+        selectBasic(builder) {
+          builder.select('id', 'name', 'image');
+        }
+      })
+      .first();
+  }
+
   async create(data) {
-    return Film.query().insert(data);
+    // Insert film first
+    const film = await Film.query().insert(data);
+    
+    // Generate and update slug with ID
+    const slug = Film.generateSlug(data.judul, film.film_id);
+    await Film.query().findById(film.film_id).patch({ slug });
+    
+    return { ...film, slug };
   }
 
   async update(id, data) {
+    // If judul changed, regenerate slug
+    if (data.judul) {
+      data.slug = Film.generateSlug(data.judul, id);
+    }
     return Film.query().patchAndFetchById(id, data);
   }
 

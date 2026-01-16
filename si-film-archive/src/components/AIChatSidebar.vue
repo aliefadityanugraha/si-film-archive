@@ -88,7 +88,7 @@
               <span class="text-zinc-500 text-[10px] font-['IBM_Plex_Mono']">NOW</span>
             </div>
             <div class="bg-white shadow-[2px_2px_0px_0px_rgba(24,24,27,1.00)] outline outline-2 outline-offset-[-2px] outline-zinc-900 p-4">
-              <p class="text-zinc-900 text-sm font-['IBM_Plex_Mono'] leading-6">Halo! Saya asisten AI CineArchive. Ada yang bisa saya bantu tentang film, rekomendasi, atau arsip?</p>
+              <p class="text-zinc-900 text-sm font-['IBM_Plex_Mono'] leading-6">Halo! Saya asisten AI PF Space. Ada yang bisa saya bantu tentang film, rekomendasi, atau arsip?</p>
             </div>
           </div>
         </div>
@@ -290,12 +290,17 @@ const fetchHistory = async () => {
 const clearHistory = async () => {
   if (!confirm('Hapus semua riwayat chat?')) return
   
+  error.value = null
+  messages.value = []
+  
   try {
-    await api.delete('/api/chat/history')
-    messages.value = []
+    const res = await api.delete('/api/chat/history')
+    if (res && res.success === false) {
+      throw new Error(res.message || 'Gagal menghapus riwayat')
+    }
   } catch (err) {
     console.error('Failed to clear history:', err)
-    error.value = 'Gagal menghapus riwayat'
+    error.value = 'Riwayat di server gagal dihapus, tetapi sudah dibersihkan di tampilan.'
   }
 }
 

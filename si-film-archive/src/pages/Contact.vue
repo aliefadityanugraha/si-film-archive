@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Mail, MapPin, Phone, Send, Loader2 } from 'lucide-vue-next'
 import Toast from '@/components/Toast.vue'
+import { useToast } from '@/composables/useToast'
 
 const form = ref({
   name: '',
@@ -17,12 +18,7 @@ const form = ref({
 })
 
 const loading = ref(false)
-const toast = ref({ show: false, type: 'success', message: '' })
-
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => { toast.value.show = false }, 3000)
-}
+const { toast, showToast } = useToast()
 
 const submitForm = async () => {
   loading.value = true
@@ -68,8 +64,8 @@ const submitForm = async () => {
                   </div>
                   <div>
                     <h4 class="font-bold mb-1">Email</h4>
-                    <p class="text-stone-300 text-sm">hello@cinearchive.id</p>
-                    <p class="text-stone-300 text-sm">support@cinearchive.id</p>
+                    <p class="text-stone-300 text-sm">hello@pfspace.id</p>
+                    <p class="text-stone-300 text-sm">support@pfspace.id</p>
                   </div>
                 </div>
 

@@ -118,8 +118,10 @@ const handleGoogleLogin = () => {
         <input type="checkbox" v-model="agreeTerms"
           class="w-5 h-5 mt-0.5 border-2 border-stone-600 bg-transparent rounded" />
         <span class="text-sm text-stone-400 font-body">
-          I agree to the <a href="#" class="text-amber-500 hover:text-amber-400">Terms</a> 
-          and <a href="#" class="text-amber-500 hover:text-amber-400">Privacy Policy</a>
+          I agree to the 
+          <router-link to="/terms" class="text-amber-500 hover:text-amber-400">Terms</router-link> 
+          and 
+          <router-link to="/privacy" class="text-amber-500 hover:text-amber-400">Privacy Policy</router-link>
         </span>
       </label>
 

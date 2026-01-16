@@ -22,3 +22,23 @@ export async function saveFile(file) {
   
   return `/uploads/${uniqueName}`;
 }
+
+export async function deleteFile(fileUrl) {
+  if (!fileUrl) return;
+
+  try {
+    // Extract filename from URL/path
+    // Handle both full URLs and relative paths
+    const filename = fileUrl.split('/').pop();
+    if (!filename) return;
+
+    const filePath = path.join(UPLOAD_DIR, filename);
+    
+    if (fs.existsSync(filePath)) {
+      await fs.promises.unlink(filePath);
+      console.log(`Deleted file: ${filePath}`);
+    }
+  } catch (err) {
+    console.error(`Failed to delete file ${fileUrl}:`, err);
+  }
+}

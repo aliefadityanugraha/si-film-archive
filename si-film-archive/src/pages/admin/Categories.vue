@@ -10,6 +10,7 @@ import {
   Plus, Pencil, Trash2, Loader2, FolderOpen, X, Save, AlertTriangle, CheckCircle, XCircle
 } from 'lucide-vue-next'
 import Toast from '@/components/Toast.vue'
+import { useToast } from '@/composables/useToast'
 
 const sidebarCollapsed = ref(false)
 const categories = ref([])
@@ -28,13 +29,7 @@ const showConfirm = ref(false)
 const confirmData = ref({ title: '', message: '', onConfirm: null })
 
 // Toast/Alert state
-const toast = ref({ show: false, type: 'success', message: '' })
-
-// Show toast notification
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => { toast.value.show = false }, 3000)
-}
+const { toast, showToast } = useToast()
 
 // Show confirm dialog
 const showConfirmDialog = (title, message) => {

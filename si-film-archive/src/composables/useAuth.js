@@ -5,6 +5,22 @@ import { authApi, ApiError } from '@/lib/api';
 const user = ref(null);
 const loading = ref(false);
 const initialized = ref(false);
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+function normalizeUser(u) {
+  if (!u) return u;
+  const copy = { ...u };
+  const img = copy.image;
+  if (typeof img === 'string' && img.length > 0) {
+    if (img.startsWith('/uploads')) {
+      copy.image = `${API_BASE}${img}`;
+    } else if (img.startsWith('http://localhost/uploads') || img.startsWith('https://localhost/uploads')) {
+      const base = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
+      copy.image = img.replace(/^https?:\/\/localhost/, base);
+    }
+  }
+  return copy;
+}
 
 export function useAuth() {
   const isLoggedIn = computed(() => !!user.value);
@@ -20,7 +36,7 @@ export function useAuth() {
     try {
       const res = await authApi.getProfile();
       if (res.success) {
-        user.value = res.data;
+        user.value = normalizeUser(res.data);
       }
     } catch {
       user.value = null;
@@ -34,25 +50,9 @@ export function useAuth() {
   async function login(email, password) {
     loading.value = true;
     try {
-      const loginRes = await authApi.login(email, password);
-      // Better Auth returns { user: {...}, token: "xxx" } or { user: {...}, session: {...} }
-      // If user is in response, use it directly, otherwise fetch profile
-      if (loginRes.user) {
-        // Need to fetch full profile to get role info
-        const res = await authApi.getProfile();
-        if (res.success) {
-          user.value = res.data;
-        } else if (loginRes.user) {
-          // Fallback to login response user if profile fails
-          user.value = loginRes.user;
-        }
-      } else {
-        // Fetch profile if user not in login response
-        const res = await authApi.getProfile();
-        if (res.success) {
-          user.value = res.data;
-        }
-      }
+      await authApi.login(email, password);
+      const res = await authApi.getProfile();
+      user.value = normalizeUser(res.data);
       return { success: true };
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Login failed';
@@ -66,25 +66,10 @@ export function useAuth() {
   async function register(data) {
     loading.value = true;
     try {
-      const registerRes = await authApi.register(data);
-      // Better Auth returns { user: {...}, token: "xxx" } or { user: {...}, session: {...} }
-      // If user is in response, use it directly, otherwise fetch profile
-      if (registerRes.user) {
-        // Need to fetch full profile to get role info
-        const res = await authApi.getProfile();
-        if (res.success) {
-          user.value = res.data;
-        } else if (registerRes.user) {
-          // Fallback to register response user if profile fails
-          user.value = registerRes.user;
-        }
-      } else {
-        // Fetch profile if user not in register response
-        const res = await authApi.getProfile();
-        if (res.success) {
-          user.value = res.data;
-        }
-      }
+      await authApi.register(data);
+      // Auto login after register
+      const res = await authApi.getProfile();
+      user.value = normalizeUser(res.data);
       return { success: true };
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Registration failed';
@@ -113,7 +98,7 @@ export function useAuth() {
     try {
       const res = await authApi.getProfile();
       if (res.success) {
-        user.value = res.data;
+        user.value = normalizeUser(res.data);
       }
     } catch (err) {
       // Only clear user if it's a 401 unauthorized error

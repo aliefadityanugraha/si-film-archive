@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import Home from '../pages/Home.vue'
 import About from '../pages/About.vue'
+import Contact from '../pages/Contact.vue'
 import Detail from '../pages/Detail.vue'
 import LearningAsset from '../pages/LearningAsset.vue'
 import DashboardUser from '../pages/DashboardUser.vue'
@@ -13,25 +14,23 @@ import Collections from '../pages/Collections.vue'
 import Login from '../pages/auth/Login.vue'
 import Register from '../pages/auth/Register.vue'
 import Forgot from '../pages/auth/Forgot.vue'
-import ResetPassword from '../pages/auth/ResetPassword.vue'
 import DashboardAdmin from '../pages/admin/DashboardAdmin.vue'
 import RBAC from '../pages/admin/RBAC.vue'
 import Categories from '../pages/admin/Categories.vue'
 import Films from '../pages/admin/Films.vue'
-import Comments from '../pages/admin/Comments.vue'
-import CarouselManager from '../pages/admin/CarouselManager.vue'
 import Users from '../pages/admin/Users.vue'
 import Uploads from '../pages/admin/Uploads.vue'
 import Reports from '../pages/admin/Reports.vue'
 import Analytics from '../pages/admin/Analytics.vue'
 import Notifications from '../pages/admin/Notifications.vue'
-import Settings from '../pages/admin/Settings.vue'
+import SettingsPage from '../pages/admin/Settings.vue'
 import Help from '../pages/admin/Help.vue'
+import CarouselManager from '../pages/admin/CarouselManager.vue'
 import NotFound from '../pages/NotFound.vue'
 import Voting from '../pages/Voting.vue'
+import Watch from '../pages/Watch.vue'
 import Privacy from '../pages/Privacy.vue'
 import Terms from '../pages/Terms.vue'
-import Contact from '../pages/Contact.vue'
 
 const routes = [
   {
@@ -45,14 +44,25 @@ const routes = [
     component: About
   },
   {
-    path: '/detail/:id?',
-    name: 'Detail',
-    component: Detail
+    path: '/contact',
+    name: 'Contact',
+    component: Contact
   },
   {
-    path: '/film/:filmId/asset/:assetSlug',
+    path: '/film/:slug',
+    name: 'Detail',
+    component: Detail,
+    alias: ['/detail/:slug']
+  },
+  {
+    path: '/film/:filmSlug/asset/:assetSlug',
     name: 'LearningAsset',
     component: LearningAsset
+  },
+  {
+    path: '/watch/:slug',
+    name: 'Watch',
+    component: Watch
   },
   {
     path: '/dashboard',
@@ -73,7 +83,7 @@ const routes = [
     meta: { requiresAuth: true, requiresCreator: true }
   },
   {
-    path: '/edit-film/:id',
+    path: '/edit-film/:slug',
     name: 'EditFilm',
     component: EditFilm,
     meta: { requiresAuth: true, requiresCreator: true }
@@ -106,11 +116,6 @@ const routes = [
     component: Terms
   },
   {
-    path: '/contact',
-    name: 'Contact',
-    component: Contact
-  },
-  {
     path: '/auth/login',
     name: 'Login',
     component: Login,
@@ -126,12 +131,6 @@ const routes = [
     path: '/auth/forgot',
     name: 'Forgot',
     component: Forgot,
-    meta: { guestOnly: true }
-  },
-  {
-    path: '/auth/reset-password',
-    name: 'ResetPassword',
-    component: ResetPassword,
     meta: { guestOnly: true }
   },
   {
@@ -153,28 +152,16 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
-    path: '/admin/films',
-    name: 'AdminFilms',
-    component: Films,
-    meta: { requiresAuth: true, requiresModerator: true }
-  },
-  {
-    path: '/admin/comments',
-    name: 'AdminComments',
-    component: Comments,
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/carousel',
-    name: 'AdminCarousel',
-    component: CarouselManager,
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
     path: '/admin/users',
     name: 'AdminUsers',
     component: Users,
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/films',
+    name: 'AdminFilms',
+    component: Films,
+    meta: { requiresAuth: true, requiresModerator: true }
   },
   {
     path: '/admin/uploads',
@@ -203,13 +190,19 @@ const routes = [
   {
     path: '/admin/settings',
     name: 'AdminSettings',
-    component: Settings,
+    component: SettingsPage,
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
     path: '/admin/help',
     name: 'AdminHelp',
     component: Help,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/carousel',
+    name: 'AdminCarousel',
+    component: CarouselManager,
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
@@ -220,14 +213,12 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition
-    } else {
-      return { top: 0 }
-    }
+    if (savedPosition) return savedPosition
+    if (to.hash) return { el: to.hash, behavior: 'smooth' }
+    return { left: 0, top: 0, behavior: 'smooth' }
   }
 })
 

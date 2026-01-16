@@ -10,6 +10,8 @@ import {
   Film, Search, Loader2, Eye, Check, X, Trash2, AlertTriangle, 
   CheckCircle, XCircle, Clock, Filter, ChevronLeft, ChevronRight
 } from 'lucide-vue-next'
+import Toast from '@/components/Toast.vue'
+import { useToast } from '@/composables/useToast'
 
 const sidebarCollapsed = ref(false)
 const films = ref([])
@@ -28,12 +30,7 @@ const confirmAction = ref({ type: '', film: null })
 const actionLoading = ref(false)
 
 // Toast
-const toast = ref({ show: false, type: 'success', message: '' })
-
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => { toast.value.show = false }, 3000)
-}
+const { toast, showToast } = useToast()
 
 // Status badge colors
 const statusColors = {

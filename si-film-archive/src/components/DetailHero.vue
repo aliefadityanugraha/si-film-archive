@@ -78,7 +78,7 @@ const synopsis = `In a remote mountain village rapidly emptying of its youth, a 
           <div class="flex flex-wrap gap-3">
             <Button variant="outline" class="bg-white text-stone-800">
               <Bookmark class="w-4 h-4 mr-2" />
-              Save
+              Simpan ke Koleksi
             </Button>
             <Button variant="outline" class="bg-white text-stone-800">
               <Share2 class="w-4 h-4 mr-2" />

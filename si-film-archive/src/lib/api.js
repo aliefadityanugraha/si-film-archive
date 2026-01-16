@@ -27,14 +27,13 @@ async function request(endpoint, options = {}) {
     ...options,
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
       ...options.headers
     }
   };
 
-  // Remove Content-Type for FormData
-  if (options.body instanceof FormData) {
-    delete config.headers['Content-Type'];
+  // Only add Content-Type: application/json if body is present and not FormData
+  if (options.body && !(options.body instanceof FormData)) {
+    config.headers['Content-Type'] = 'application/json';
   }
 
   const response = await fetch(url, config);
@@ -83,10 +82,9 @@ export const api = {
     method: 'DELETE'
   }),
 
-  // For file uploads
-  upload: (endpoint, formData, options = {}) => request(endpoint, {
-    ...options,
-    method: options.method || 'POST',
+  upload: (endpoint, formData, options) => request(endpoint, {
+    ...(options || {}),
+    method: options && options.method ? options.method : 'POST',
     body: formData
   })
 };
@@ -95,8 +93,8 @@ export const api = {
 export const authApi = {
   login: (email, password) => api.post('/api/auth/sign-in/email', { email, password }),
   register: (data) => api.post('/api/auth/sign-up/email', data),
-  logout: () => api.post('/api/auth/sign-out', {}),
-  getSession: () => api.get('/api/auth/session'),
+  logout: () => api.post('/api/auth/logout', {}),
+  getSession: () => api.get('/api/auth/get-session'),
   getProfile: () => api.get('/api/auth/profile'),
   
   // Google OAuth - redirect

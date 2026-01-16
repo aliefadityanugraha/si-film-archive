@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 defineProps({
   title: {
     type: String,
-    default: 'CineArchive'
+    default: 'PF Space'
   },
   subtitle: {
     type: String,
@@ -52,7 +52,7 @@ defineProps({
 
     <!-- Page Footer -->
     <p class="mt-8 text-xs text-stone-600 font-body uppercase tracking-wide">
-      © {{ new Date().getFullYear() }} CineArchive Repository. All rights reserved.
+      © {{ new Date().getFullYear() }} PF Space Repository. All rights reserved.
     </p>
   </div>
 </template>

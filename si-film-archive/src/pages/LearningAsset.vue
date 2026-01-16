@@ -11,7 +11,7 @@ const route = useRoute()
 const router = useRouter()
 
 // Route params
-const filmId = computed(() => route.params.filmId)
+const filmSlug = computed(() => route.params.filmSlug)
 const assetSlug = computed(() => route.params.assetSlug)
 
 const film = ref(null)
@@ -45,12 +45,12 @@ const assetUrl = computed(() => {
 })
 
 const fetchFilm = async () => {
-  if (!filmId.value) return
+  if (!filmSlug.value) return
   
   loading.value = true
   error.value = null
   try {
-    const res = await api.get(`/api/films/${filmId.value}`)
+    const res = await api.get(`/api/films/${filmSlug.value}`)
     film.value = res.data
     
     // Verify asset exists
@@ -77,7 +77,7 @@ const zoomOut = () => {
 }
 
 const goBack = () => {
-  router.push({ name: 'Detail', params: { id: filmId.value } })
+  router.push({ name: 'Detail', params: { slug: film.value?.slug || filmSlug.value } })
 }
 
 const downloadAsset = () => {
@@ -98,7 +98,7 @@ const breadcrumbs = computed(() => {
   if (!film.value) return []
   return [
     { label: 'Home', path: '/' },
-    { label: film.value.judul, path: `/detail/${filmId.value}` },
+    { label: film.value.judul, path: `/film/${film.value.slug}` },
     { label: currentAssetConfig.value?.title || 'Asset', active: true }
   ]
 })

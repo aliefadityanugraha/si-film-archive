@@ -56,6 +56,7 @@ export function useVoting() {
       // 4. Merge Data
       films.value = filmData.map(f => ({
         id: f.film_id,
+        slug: f.slug,
         title: f.judul,
         year: f.tahun_karya,
         director: f.creator?.name || f.creator?.username || 'Unknown',

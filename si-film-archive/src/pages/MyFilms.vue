@@ -14,10 +14,11 @@ import {
   AlertTriangle, X, ChevronLeft, ChevronRight
 } from 'lucide-vue-next'
 import Toast from '@/components/Toast.vue'
+import { useToast } from '@/composables/useToast'
 import { useHead } from '@unhead/vue'
 
 useHead({
-  title: 'Manajemen Film Saya - CineArchive'
+  title: 'Manajemen Film Saya - PF Space'
 })
 
 const router = useRouter()
@@ -30,12 +31,7 @@ const statusFilter = ref('all')
 const showConfirm = ref(false)
 const filmToDelete = ref(null)
 const deleting = ref(false)
-const toast = ref({ show: false, type: 'success', message: '' })
-
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => { toast.value.show = false }, 3000)
-}
+const { toast, showToast } = useToast()
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
@@ -191,7 +187,7 @@ onMounted(fetchFilms)
               variant="outline" 
               size="sm" 
               class="flex-1 gap-1"
-              @click="router.push(`/detail/${film.film_id}`)"
+              @click="router.push(`/film/${film.slug}`)"
             >
               <Eye class="w-4 h-4" /> Lihat
             </Button>
@@ -199,7 +195,7 @@ onMounted(fetchFilms)
               variant="outline" 
               size="sm" 
               class="flex-1 gap-1"
-              @click="router.push(`/edit-film/${film.film_id}`)"
+              @click="router.push(`/edit-film/${film.slug}`)"
             >
               <Pencil class="w-4 h-4" /> Edit
             </Button>

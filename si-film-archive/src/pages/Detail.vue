@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/lib/api'
 import { useAuth } from '@/composables/useAuth'
-import { useCollection } from '@/composables/useCollection'
+
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
 import ContentSection from '@/components/ContentSection.vue'
@@ -17,19 +17,20 @@ import {
 
 import CommentItem from '@/components/CommentItem.vue'
 import Toast from '@/components/Toast.vue'
+import { useToast } from '@/composables/useToast'
 import { formatDate } from '@/lib/format'
 import { useHead } from '@unhead/vue'
 
 const route = useRoute()
 const router = useRouter()
-const filmId = computed(() => route.params.id)
+const filmSlug = computed(() => route.params.slug || route.params.id)
 
 // Data
 const film = ref(null)
 
 // SEO Dynamic
 useHead({
-  title: () => film.value ? `${film.value.judul} - CineArchive` : 'Memuat Film...',
+  title: () => film.value ? `${film.value.judul} - PF Space` : 'Memuat Film...',
   meta: [
     { name: 'description', content: () => film.value?.sinopsis || 'Detail arsip film.' },
     { property: 'og:title', content: () => film.value?.judul },
@@ -47,13 +48,17 @@ const loading = ref(true)
 const voteData = ref({ vote_count: 0, has_voted: false })
 const voting = ref(false)
 
-// Collection
-const { 
-  isInCollection, 
-  processing: processingCollection, 
-  fetchStatus: fetchCollectionStatus, 
-  toggle: toggleCollection 
-} = useCollection(filmId)
+// Film ID computed (after film is fetched)
+const filmId = computed(() => film.value?.film_id)
+
+// Collection - will be initialized after film is fetched
+const collectionState = ref({
+  isInCollection: false,
+  processing: false
+})
+
+const isInCollection = computed(() => collectionState.value.isInCollection)
+const processingCollection = computed(() => collectionState.value.processing)
 
 // Comments
 const comments = ref([])
@@ -64,18 +69,7 @@ const submittingComment = ref(false)
 const canModerate = computed(() => isAdmin.value || isModerator.value)
 
 // Toast state
-const toast = ref({
-  show: false,
-  type: 'success',
-  message: ''
-})
-
-const showToast = (message, type = 'success') => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => {
-    toast.value.show = false
-  }, 3000)
-}
+const { toast, showToast } = useToast()
 
 const handleScroll = () => {
   if (heroRef.value) {
@@ -84,17 +78,18 @@ const handleScroll = () => {
   }
 }
 
-// Fetch film detail
+// Fetch film detail by slug
 const fetchFilm = async () => {
-  if (!filmId.value) {
+  if (!filmSlug.value) {
     router.push('/')
     return
   }
   
   loading.value = true
   try {
-    const res = await api.get(`/api/films/${filmId.value}`)
+    const res = await api.get(`/api/films/${filmSlug.value}`)
     film.value = res.data
+    // Now that we have film_id, fetch related data
     fetchVoteData()
     fetchCollectionStatus()
     fetchComments()
@@ -108,6 +103,7 @@ const fetchFilm = async () => {
 
 // Fetch vote data
 const fetchVoteData = async () => {
+  if (!filmId.value) return
   try {
     const res = await api.get(`/api/votes/film/${filmId.value}`)
     voteData.value = res.data
@@ -122,6 +118,7 @@ const toggleVote = async () => {
     router.push('/auth/login')
     return
   }
+  if (!filmId.value) return
   
   voting.value = true
   try {
@@ -139,6 +136,7 @@ const toggleVote = async () => {
 
 // Fetch comments
 const fetchComments = async () => {
+  if (!filmId.value) return
   loadingComments.value = true
   try {
     const res = await api.get(`/api/discussions/film/${filmId.value}`)
@@ -150,16 +148,64 @@ const fetchComments = async () => {
   }
 }
 
-// Collection functions are now from useCollection composable
+// Fetch collection status
+const fetchCollectionStatus = async () => {
+  if (!filmId.value || !isLoggedIn.value) return
+  try {
+    const res = await api.get('/api/collections/my-collections')
+    const raw = res.data
+    const list = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : []
+    const found = list.some(item => {
+      return item.film_id === filmId.value || item.film?.film_id === filmId.value
+    })
+    collectionState.value.isInCollection = found
+  } catch (err) {
+    console.error('Failed to fetch collection status:', err)
+  }
+}
+
+// Toggle collection
 const handleToggleCollection = async () => {
-  await toggleCollection(showToast)
+  if (!isLoggedIn.value) {
+    router.push('/auth/login')
+    return
+  }
+  if (!filmId.value) return
+  
+  const previous = collectionState.value.isInCollection
+  collectionState.value.processing = true
+  try {
+    const res = await api.post(`/api/collections/toggle/${filmId.value}`, {})
+    const data = res.data
+    let inCollection = !previous
+
+    if (typeof data === 'boolean') {
+      inCollection = data
+    } else if (data) {
+      if (typeof data.in_collection === 'boolean') {
+        inCollection = data.in_collection
+      } else if (typeof data.inCollection === 'boolean') {
+        inCollection = data.inCollection
+      } else if (typeof data.in_collection === 'number') {
+        inCollection = data.in_collection === 1
+      }
+    }
+
+    collectionState.value.isInCollection = inCollection
+    showToast(inCollection ? 'Ditambahkan ke koleksi' : 'Dihapus dari koleksi')
+  } catch (err) {
+    collectionState.value.isInCollection = previous
+    showToast(err.message || 'Gagal mengubah koleksi', 'error')
+  } finally {
+    collectionState.value.processing = false
+  }
 }
 
 // Share function
 const handleShare = async () => {
   const shareData = {
-    title: film.value?.judul || 'CineArchive Film',
-    text: `Tonton film ${film.value?.judul} di CineArchive`,
+    title: film.value?.judul || 'PF Space Film',
+    text: `Tonton film ${film.value?.judul} di PF Space`,
     url: window.location.href
   }
 
@@ -190,7 +236,7 @@ const submitComment = async (data = null) => {
   const text = isReply ? data.isi_pesan : newComment.value.trim()
   const parentId = isReply ? data.parent_id : null
 
-  if (!text || !isLoggedIn.value) return
+  if (!text || !isLoggedIn.value || !filmId.value) return
   
   submittingComment.value = !isReply
   try {
@@ -317,7 +363,7 @@ onUnmounted(() => {
       <section ref="heroRef" class="relative min-h-[500px] md:min-h-[700px]">
         <!-- Background with gradient -->
         <div class="absolute inset-0">
-          <img src="/banner.jpg" alt="Film background" class="w-full h-full object-cover" />
+          <img src="/banner.webp" alt="Film background" class="w-full h-full object-cover" />
           <div class="absolute inset-0 bg-gradient-to-t from-[#F2EEE3] via-transparent/50 to-transparent"></div>
         </div>
 
@@ -381,6 +427,15 @@ onUnmounted(() => {
               <!-- Action Buttons -->
               <div class="flex flex-wrap gap-3">
                 <Button 
+                  v-if="film.link_video_utama"
+                  variant="default"
+                  class="bg-brand-red hover:bg-red-600"
+                  @click="router.push(`/watch/${film.slug}`)"
+                >
+                  <Play class="w-4 h-4 mr-2" />
+                  Tonton Film
+                </Button>
+                <Button 
                   variant="outline" 
                   class="bg-white text-stone-800"
                   @click="handleToggleCollection"
@@ -389,7 +444,7 @@ onUnmounted(() => {
                 >
                   <Loader2 v-if="processingCollection" class="w-4 h-4 mr-2 animate-spin" />
                   <Bookmark v-else :class="['w-4 h-4 mr-2', isInCollection ? 'fill-current' : '']" />
-                  {{ isInCollection ? 'Saved' : 'Save' }}
+                  {{ isInCollection ? 'Tersimpan' : 'Simpan ke Koleksi' }}
                 </Button>
                 <Button variant="outline" class="bg-white text-stone-800" @click="handleShare">
                   <Share2 class="w-4 h-4 mr-2" />
@@ -527,32 +582,19 @@ onUnmounted(() => {
 
           <!-- Right Column: Learning Assets -->
           <div class="lg:col-span-1 space-y-6 animate-fade-in-up" style="animation-delay: 500ms; opacity: 0; animation-fill-mode: forwards;">
-            <!-- Video Embed -->
-            <Card v-if="film.link_video_utama">
+            <!-- Trailer (YouTube Embed) -->
+            <Card v-if="film.link_trailer">
               <CardContent class="p-0">
                 <div class="aspect-video bg-black">
                   <iframe 
-                    :src="getYoutubeEmbedUrl(film.link_video_utama)"
+                    :src="getYoutubeEmbedUrl(film.link_trailer)"
                     class="w-full h-full"
                     frameborder="0"
+                    referrerpolicy="strict-origin-when-cross-origin"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen
                   ></iframe>
                 </div>
-              </CardContent>
-            </Card>
-            <!-- Trailer -->
-            <Card v-if="film.link_trailer">
-              <CardContent class="p-4">
-                <h3 class="font-bold mb-3">Trailer</h3>
-                <a 
-                  :href="film.link_trailer" 
-                  target="_blank"
-                  class="flex items-center gap-2 text-brand-teal hover:underline text-sm"
-                >
-                  <Play class="w-4 h-4" />
-                  Tonton Trailer
-                </a>
               </CardContent>
             </Card>
 
@@ -561,7 +603,7 @@ onUnmounted(() => {
               <div class="space-y-3">
                 <router-link 
                   v-if="film.file_naskah"
-                  :to="{ name: 'LearningAsset', params: { filmId: filmId, assetSlug: 'naskah-film' } }"
+                  :to="{ name: 'LearningAsset', params: { filmSlug: film.slug, assetSlug: 'naskah-film' } }"
                   class="flex items-center justify-between p-3 bg-stone-100 hover:bg-stone-200 transition-colors"
                 >
                   <div class="flex items-center gap-3">
@@ -575,7 +617,7 @@ onUnmounted(() => {
                 </router-link>
                 <router-link 
                   v-if="film.file_storyboard"
-                  :to="{ name: 'LearningAsset', params: { filmId: filmId, assetSlug: 'storyboard' } }"
+                  :to="{ name: 'LearningAsset', params: { filmSlug: film.slug, assetSlug: 'storyboard' } }"
                   class="flex items-center justify-between p-3 bg-stone-100 hover:bg-stone-200 transition-colors"
                 >
                   <div class="flex items-center gap-3">
@@ -589,7 +631,7 @@ onUnmounted(() => {
                 </router-link>
                 <router-link 
                   v-if="film.file_rab"
-                  :to="{ name: 'LearningAsset', params: { filmId: filmId, assetSlug: 'rab' } }"
+                  :to="{ name: 'LearningAsset', params: { filmSlug: film.slug, assetSlug: 'rab' } }"
                   class="flex items-center justify-between p-3 bg-stone-100 hover:bg-stone-200 transition-colors"
                 >
                   <div class="flex items-center gap-3">

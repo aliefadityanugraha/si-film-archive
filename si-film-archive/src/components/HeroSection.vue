@@ -80,39 +80,39 @@ onMounted(async () => {
           <!-- <div class="absolute inset-0 bg-gradient-to-t from-[#F2EEE3] via-transparent to-transparent"></div> -->
           
           <!-- Content Container -->
-          <div class="absolute inset-0 z-10 flex flex-col justify-center md:justify-end translate-y-0 md:translate-y-0 pb-20 md:pb-32">
-            <div class="max-w-7xl mx-auto px-4 md:px-8 w-full">
+          <div class="absolute inset-0 z-10 flex flex-col justify-center md:justify-end translate-y-0 md:translate-y-0 md:pb-32">
+            <div class="max-w-7xl mx-auto px-3 md:px-8 w-full">
               <div class="hero-content max-w-3xl">
                 <!-- AI Summary Badge -->
-                <div class="badge-wrapper mb-4">
-                  <Badge class="bg-brand-teal text-white border-2 border-black shadow-brutal-sm rounded-none px-3 py-1 text-sm font-bold uppercase tracking-wider">
+                <div class="badge-wrapper mb-3 md:mb-4">
+                  <Badge class="bg-brand-teal text-white border-2 border-black shadow-brutal-sm rounded-none px-2 md:px-3 py-1 text-xs md:text-sm font-bold uppercase tracking-wider">
                     <Sparkles class="w-4 h-4 mr-2" />
                     AI Summary
                   </Badge>
                 </div>
 
                 <!-- Title -->
-                <h1 class="hero-title text-5xl md:text-7xl lg:text-8xl font-display font-black text-white mb-6 drop-shadow-[4px_4px_0_rgba(0,0,0,1)] leading-none">
+                <h1 class="hero-title text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-display font-black text-white mb-4 md:mb-6 drop-shadow-[4px_4px_0_rgba(0,0,0,1)] leading-none">
                   {{ slides[activeIndex].title }}
                 </h1>
 
                 <!-- Quote Card -->
-                <div class="hero-card bg-white border-2 border-black shadow-brutal p-5 md:p-6 mb-8 transform -rotate-1 transition-transform hover:rotate-0 max-w-2xl">
+                <div class="hero-card bg-white border-2 border-black shadow-brutal p-3 md:p-6 mb-5 md:mb-8 transform -rotate-1 transition-transform hover:rotate-0 max-w-2xl">
                   <div class="flex gap-4">
                     <div class="w-1 bg-brand-red flex-shrink-0"></div>
-                    <p class="text-lg md:text-xl font-medium text-stone-900 leading-relaxed font-serif">
+                    <p class="text-sm sm:text-base md:text-xl font-medium text-stone-900 leading-relaxed font-serif">
                       "{{ slides[activeIndex].quote }}"
                     </p>
                   </div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="hero-actions flex flex-wrap gap-4">
-                  <Button class="bg-brand-red text-white border-2 border-black shadow-brutal hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] h-12 px-6 md:px-8 text-base md:text-lg font-bold uppercase rounded-none transition-all">
+                <div class="hero-actions flex flex-wrap gap-2.5 md:gap-4">
+                  <Button class="bg-brand-red text-white border-2 border-black shadow-brutal hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] h-9 md:h-12 px-3 md:px-8 text-xs sm:text-sm md:text-lg font-bold uppercase rounded-none transition-all">
                     <Play class="w-5 h-5 mr-2 fill-current" />
                     Watch Now
                   </Button>
-                  <Button class="bg-[#F2EEE3] text-stone-900 border-2 border-black shadow-brutal hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] h-12 px-6 md:px-8 text-base md:text-lg font-bold uppercase rounded-none transition-all">
+                  <Button class="bg-[#F2EEE3] text-stone-900 border-2 border-black shadow-brutal hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] h-9 md:h-12 px-3 md:px-8 text-xs sm:text-sm md:text-lg font-bold uppercase rounded-none transition-all">
                     <Heart class="w-5 h-5 mr-2" />
                     Vote
                   </Button>

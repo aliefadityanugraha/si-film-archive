@@ -25,7 +25,7 @@ watch([initialized, isLoggedIn], ([init, loggedIn]) => {
 
 // Setup head after user is defined
 useHead({
-  title: () => user.value ? `Profil: ${user.value.name} - CineArchive` : 'Profil Saya - CineArchive'
+  title: () => user.value ? `Profil: ${user.value.name} - PF Space` : 'Profil Saya - PF Space'
 })
 
 // Form state

@@ -1,6 +1,6 @@
 import { authService } from '../services/index.js';
 import { ROLES } from '../models/index.js';
-import { saveFile } from '../lib/upload.js';
+import { saveFile, deleteFile } from '../lib/upload.js';
 
 export class AuthController {
   async getProfile(request, reply) {
@@ -55,30 +55,34 @@ export class AuthController {
   }
 
   async updateUser(request, reply) {
-    const parts = request.parts();
     let name;
     let imagePath;
 
-    for await (const part of parts) {
-      if (part.type === 'file' && part.fieldname === 'image') {
-        imagePath = await saveFile(part);
-      } else if (part.type === 'field' && part.fieldname === 'name') {
-        name = part.value;
-      }
-    }
+    if (request.isMultipart && request.isMultipart()) {
+      const parts = request.parts();
 
-    // Also support JSON body if no file is uploaded
-    if (!name && !imagePath && request.body) {
+      for await (const part of parts) {
+        if (part.type === 'file' && part.fieldname === 'image') {
+          imagePath = await saveFile(part);
+        } else if (part.type === 'field' && part.fieldname === 'name') {
+          name = part.value;
+        }
+      }
+    } else if (request.body) {
       name = request.body.name;
     }
 
     const updateData = {};
-    if (name) updateData.name = name;
+    if (name !== undefined) updateData.name = name;
     if (imagePath) {
-      // Get full URL for image
-      const protocol = request.protocol;
-      const host = request.hostname;
-      updateData.image = `${protocol}://${host}${imagePath}`;
+      // Get current user to check for existing image
+      const currentUser = await authService.getUserById(request.user.id);
+      if (currentUser && currentUser.image) {
+        await deleteFile(currentUser.image);
+      }
+
+      const baseUrl = process.env.API_URL || `${request.protocol}://${request.headers.host}`;
+      updateData.image = `${baseUrl}${imagePath}`;
     }
 
     const user = await authService.updateUser(request.user.id, updateData);

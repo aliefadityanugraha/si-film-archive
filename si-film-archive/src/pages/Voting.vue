@@ -8,18 +8,14 @@ import Footer from '@/components/Footer.vue'
 import FilmCard from '@/components/FilmCard.vue'
 import Toast from '@/components/Toast.vue'
 import { useVoting } from '@/composables/useVoting'
+import { useToast } from '@/composables/useToast'
 
 const { films, categories, isLoading, fetchFilms, voteFilm } = useVoting()
 
 const selectedCategory = ref('all')
 const sortBy = ref('votes')
 const votingId = ref(null)
-const toast = ref({ show: false, type: 'success', message: '' })
-
-const showToast = (message, type = 'success') => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => { toast.value.show = false }, 3000)
-}
+const { toast, showToast } = useToast()
 
 onMounted(() => {
   fetchFilms()

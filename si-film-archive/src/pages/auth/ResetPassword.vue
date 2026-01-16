@@ -117,7 +117,7 @@ const handleSubmit = async () => {
     </AuthCard>
 
     <p class="mt-8 text-xs text-stone-600 font-body uppercase tracking-wide">
-      © {{ new Date().getFullYear() }} CineArchive Repository. All rights reserved.
+      © {{ new Date().getFullYear() }} PF Space Repository. All rights reserved.
     </p>
   </div>
 </template>

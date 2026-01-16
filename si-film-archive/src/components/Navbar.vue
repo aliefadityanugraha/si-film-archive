@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { Search, User, Film, LogOut, Settings, LayoutDashboard, Upload, LogIn, Shield, Loader2, X, Bookmark } from 'lucide-vue-next'
@@ -30,9 +30,6 @@ const { user, isLoggedIn, isCreator, isModerator, isAdmin, logout } = useAuth()
 const open = ref(false)
 
 // Live Search with Composable
-// User restriction: Search only returns published films for everyone
-const searchStatus = computed(() => 'published')
-
 const {
   searchQuery,
   searchResults,
@@ -41,11 +38,13 @@ const {
   clearSearch
 } = useLiveSearch({
   limit: 10,
-  status: searchStatus
+  // We'll watch for role changes inside the composable if needed, 
+  // but for now we'll compute status dynamically
+  status: (isAdmin.value || isModerator.value) ? 'all' : 'published'
 })
 
-const goToFilm = (id) => {
-  router.push(`/detail/${id}`)
+const goToFilm = (slug) => {
+  router.push(`/film/${slug}`)
   clearSearch()
 }
 
@@ -57,47 +56,41 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <nav class="fixed top-0 left-0 right-0 z-50 h-20 bg-transparent backdrop-blur-md border-b-2 border-stone-300/50 z-[60]">
+  <nav class="fixed top-0 left-0 right-0 z-50 h-20 bg-transparent backdrop-blur-sm border-b-2 border-stone-300/50">
     <div class="max-w-7xl mx-auto px-4 md:px-8 h-full flex items-center justify-between">
       <!-- Logo -->
       <router-link to="/" class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-brand-red shadow-brutal-sm border-2 border-slate-900 flex items-center justify-center">
-          <Film class="w-5 h-5 text-white" />
-        </div>
+        <img src="/logo-smkn-ngasem.png" alt="SMK Ngasem" class="w-10 h-10 object-contain" />
+        <span class="font-display text-xl font-bold" :class="lightTitle ? 'text-white' : 'text-stone-900'">|</span>
+        <img src="/logo-perfilman.png" alt="Perfilman" class="w-10 h-10 object-contain" />
         <span 
-          class="text-2xl font-bold font-display hidden sm:block transition-colors duration-300"
+          class="text-2xl font-bold font-display hidden md:block transition-colors duration-300"
           :class="lightTitle ? 'text-white' : 'text-[#000]'"
-        >CineArchive</span>
+        >PF Space</span>
       </router-link>
 
       <!-- Search Bar -->
-      <div class="flex-1 max-w-xl mx-4 md:mx-8 relative group">
+      <div class="hidden md:block flex-1 max-w-md mx-4 md:mx-8 relative group">
         <div class="relative z-50">
-          <Search v-if="!isSearching" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 z-10" />
-          <Loader2 v-else class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-teal animate-spin z-10" />
+          <Search v-if="!isSearching" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-500 z-10" />
+          <Loader2 v-else class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-teal animate-spin z-10" />
           
           <Input 
             v-model="searchQuery"
             type="text" 
-            placeholder="Search archives"
-            class="pl-10 pr-32 bg-orange-100 border-orange-100 shadow-none focus-visible:ring-brand-teal/20"
+            placeholder="Cari arsip film…"
+            class="h-11 pl-12 pr-36 bg-orange-100 border-2 border-black shadow-brutal focus-visible:ring-0 focus:border-black"
             @focus="showResults = searchQuery.length > 0"
           />
 
-          <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
             <button 
               v-if="searchQuery" 
               @click="searchQuery = ''; showResults = false"
-              class="p-1 mr-1 text-stone-400 hover:text-stone-900 transition-colors"
+              class="p-2 text-stone-500 hover:text-stone-900 transition-colors"
             >
-              <X class="w-3.5 h-3.5" />
+              <X class="w-4 h-4" />
             </button>
-            <!-- <Button variant="ghost" size="sm" class="h-7 px-2.5 bg-brand-red/10 border border-brand-red text-brand-red text-[10px] font-bold uppercase tracking-wide">
-              Titles
-            </Button>
-            <Button variant="ghost" size="sm" class="h-7 px-2 text-stone-500 text-[10px] font-bold uppercase tracking-wide">
-              Docs
-            </Button> -->
           </div>
         </div>
 
@@ -126,7 +119,7 @@ const handleLogout = async () => {
                 <button
                   v-for="res in searchResults"
                   :key="res.film_id"
-                  @click="goToFilm(res.film_id)"
+                  @click="goToFilm(res.slug)"
                   class="w-full flex items-center gap-4 p-3 hover:bg-orange-50 transition-colors border-b last:border-0 border-stone-100 text-left group/item"
                 >
                   <div class="w-12 h-16 bg-stone-200 flex-shrink-0 border border-stone-800 overflow-hidden">
@@ -165,36 +158,15 @@ const handleLogout = async () => {
         <div v-if="showResults" class="fixed inset-0 z-30" @click="showResults = false"></div>
       </div>
 
-      <!-- Navigation Links (Desktop) -->
-      <div class="hidden md:flex items-center gap-6 mr-6">
-        <router-link 
-          to="/" 
-          class="flex items-center gap-2 font-display font-bold text-sm uppercase tracking-wider hover:text-brand-red transition-colors"
-          :class="lightTitle ? 'text-white' : 'text-stone-900'"
-        >
-          <Home class="w-4 h-4" />
-          <span>Home</span>
-        </router-link>
-        
-        <router-link 
-          to="/voting" 
-          class="flex items-center gap-2 font-display font-bold text-sm uppercase tracking-wider hover:text-brand-red transition-colors"
-          :class="lightTitle ? 'text-white' : 'text-stone-900'"
-        >
-          <Trophy class="w-4 h-4" />
-          <span>Voting</span>
-        </router-link>
-      </div>
-
       <!-- Auth Buttons (Not Logged In) -->
-      <div v-if="!isLoggedIn" class="flex items-center gap-2">
+      <div v-if="!isLoggedIn" class="flex items-center gap-2 md:gap-3">
         <router-link to="/auth/login">
-          <Button variant="ghost" size="sm" class="font-body">
+          <Button class="bg-white text-stone-900 border-2 border-black shadow-brutal hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase rounded-none transition-all h-10 px-6">
             Login
           </Button>
         </router-link>
         <router-link to="/auth/register">
-          <Button variant="destructive" size="sm" class="font-body">
+          <Button class="bg-brand-red text-white border-2 border-black shadow-brutal hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase rounded-none transition-all h-10 px-6">
             Register
           </Button>
         </router-link>

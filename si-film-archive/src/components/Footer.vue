@@ -8,7 +8,7 @@ import { Film } from 'lucide-vue-next'
       <!-- Left: Logo & Copyright -->
       <div class="flex items-center gap-3">
         <Film class="w-5 h-5 text-stone-800" />
-        <span class="text-lg font-display font-semibold text-stone-800">CineArchive</span>
+        <span class="text-lg font-display font-semibold text-stone-800">PF Space</span>
         <span class="text-stone-400 font-body">|</span>
         <span class="text-sm font-medium font-body text-stone-800">
           © 2025. Dibuat untuk memenuhi tugas akhir mata kuliah Sistem Informasi.

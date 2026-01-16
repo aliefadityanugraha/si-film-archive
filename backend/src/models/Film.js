@@ -23,6 +23,7 @@ export class Film extends BaseModel {
         user_id: { type: 'string' },
         category_id: { type: ['integer', 'null'] },
         judul: { type: 'string' },
+        slug: { type: ['string', 'null'] },
         sinopsis: { type: ['string', 'null'] },
         tahun_karya: { type: ['integer', 'null'] },
         link_video_utama: { type: ['string', 'null'] },
@@ -36,6 +37,23 @@ export class Film extends BaseModel {
         status: { type: 'string', enum: ['pending', 'published', 'rejected'] }
       }
     };
+  }
+
+  // Generate slug from title
+  static generateSlug(title, id = null) {
+    const base = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+    return id ? `${base}-${id}` : base;
+  }
+
+  // Hook to auto-generate slug before insert
+  async $beforeInsert(queryContext) {
+    await super.$beforeInsert(queryContext);
+    // Slug will be generated after insert when we have the ID
   }
 
   static get relationMappings() {

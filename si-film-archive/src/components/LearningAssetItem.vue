@@ -8,7 +8,7 @@ const props = defineProps({
   title: { type: String, required: true },
   fileType: { type: String, default: 'PDF' },
   fileSize: { type: String, default: '2.4 MB' },
-  filmId: { type: [String, Number], default: '1' }
+  filmSlug: { type: String, default: '' }
 })
 
 const route = useRoute()
@@ -18,15 +18,15 @@ const assetSlug = computed(() => {
   return props.title.toLowerCase().replace(/\s+/g, '-')
 })
 
-// Get filmId from props or route
-const currentFilmId = computed(() => {
-  return props.filmId || route.params.id || '1'
+// Get filmSlug from props or route
+const currentFilmSlug = computed(() => {
+  return props.filmSlug || route.params.slug || ''
 })
 </script>
 
 <template>
   <router-link 
-    :to="{ name: 'LearningAsset', params: { filmId: currentFilmId, assetSlug: assetSlug } }"
+    :to="{ name: 'LearningAsset', params: { filmSlug: currentFilmSlug, assetSlug: assetSlug } }"
     class="block"
   >
     <div class="flex items-center justify-between p-4 bg-white border-2 border-stone-200 hover:border-stone-400 hover:shadow-md transition-all cursor-pointer group">

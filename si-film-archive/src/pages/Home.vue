@@ -12,12 +12,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Film, Play, User, Calendar, Loader2, TrendingUp, Clock, ArrowRight } from 'lucide-vue-next'
 import { useHead } from '@unhead/vue'
+import VotingCTABanner from '@/components/VotingCTABanner.vue'
 
 useHead({
-  title: 'CineArchive - Eksplorasi Arsip Film Mahasiswa',
+  title: 'PF Space - Eksplorasi Arsip Film Mahasiswa',
   meta: [
     { name: 'description', content: 'Platform kearsipan film mahasiswa untuk apresiasi, dokumentasi, dan pembelajaran karya sinematik.' },
-    { property: 'og:title', content: 'CineArchive - Arsip Film' },
+    { property: 'og:title', content: 'PF Space - Arsip Film' },
     { property: 'og:description', content: 'Eksplorasi mahakarya film mahasiswa dan akses aset pembelajarannya.' },
     { property: 'og:image', content: '/banner.jpg' },
     { name: 'twitter:card', content: 'summary_large_image' }
@@ -61,8 +62,8 @@ const fetchData = async () => {
   }
 }
 
-const goToDetail = (filmId) => {
-  router.push(`/detail/${filmId}`)
+const goToDetail = (slug) => {
+  router.push(`/film/${slug}`)
 }
 
 onMounted(() => {
@@ -87,6 +88,7 @@ onUnmounted(() => {
     </div>
 
     <template v-else>
+
       <!-- Latest Films Section -->
       <section class="max-w-7xl mx-auto px-4 md:px-8 py-10">
         <SectionHeader 
@@ -107,7 +109,7 @@ onUnmounted(() => {
             v-for="film in latestFilms" 
             :key="film.film_id"
             :film="film"
-            @click="goToDetail(film.film_id)"
+            @click="goToDetail(film.slug)"
             class="cursor-pointer"
           >
             <template #overlay>
@@ -121,6 +123,8 @@ onUnmounted(() => {
           </FilmCard>
         </div>
       </section>
+
+      <VotingCTABanner />
 
       <!-- Trending Films Section -->
       <section v-if="trendingFilms.length > 0" class="w-full py-12">
@@ -136,7 +140,7 @@ onUnmounted(() => {
               v-for="(film, index) in trendingFilms" 
               :key="film.film_id"
               class="overflow-hidden cursor-pointer bg-white border-2 border-black shadow-brutal hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
-              @click="goToDetail(film.film_id)"
+              @click="goToDetail(film.slug)"
             >
               <div class="flex gap-4 p-4">
                 <!-- Rank -->

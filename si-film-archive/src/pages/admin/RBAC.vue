@@ -11,6 +11,7 @@ import {
   Edit, Check, X, Loader2, RefreshCw, ChevronDown, Filter
 } from 'lucide-vue-next'
 import Toast from '@/components/Toast.vue'
+import { useToast } from '@/composables/useToast'
 
 const searchQuery = ref('')
 const sidebarCollapsed = ref(false)
@@ -23,13 +24,7 @@ const error = ref(null)
 const updatingUserId = ref(null)
 const editingUserId = ref(null)
 const selectedRoleId = ref(null)
-const toast = ref({ show: false, type: 'success', message: '' })
-
-// Show toast notification
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => { toast.value.show = false }, 3000)
-}
+const { toast, showToast } = useToast()
 
 // Role color mapping based on role name
 const roleColors = {
@@ -168,7 +163,7 @@ onMounted(() => {
       <!-- Header -->
       <PageHeader 
         title="Role-Based Access Control" 
-        description="Manage user roles and permissions for the CineArchive system."
+        description="Manage user roles and permissions for the PF Space system."
         :icon="Shield"
         icon-color="bg-amber-500"
       >

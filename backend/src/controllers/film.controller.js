@@ -1,5 +1,6 @@
 import { filmService } from '../services/index.js';
 import { ROLES } from '../models/index.js';
+import { deleteFile } from '../lib/upload.js';
 
 export class FilmController {
   // Public: Get all published films (or all films for admin)
@@ -42,10 +43,15 @@ export class FilmController {
     }
   }
 
-  // Public: Get single film
+  // Public: Get single film by ID or slug
   async getById(request, reply) {
     const { id } = request.params;
-    const film = await filmService.getById(id);
+    
+    // Check if id is numeric (film_id) or string (slug)
+    const isNumeric = /^\d+$/.test(id);
+    const film = isNumeric 
+      ? await filmService.getById(id)
+      : await filmService.getBySlug(id);
 
     if (!film) {
       return reply.status(404).send({
@@ -178,6 +184,20 @@ export class FilmController {
     if (file_rab !== undefined) updateData.file_rab = file_rab;
     if (crew !== undefined) updateData.crew = crew;
 
+    // Delete old files if they are being updated
+    if (gambar_poster && film.gambar_poster && gambar_poster !== film.gambar_poster) {
+      await deleteFile(film.gambar_poster);
+    }
+    if (file_naskah && film.file_naskah && file_naskah !== film.file_naskah) {
+      await deleteFile(film.file_naskah);
+    }
+    if (file_storyboard && film.file_storyboard && file_storyboard !== film.file_storyboard) {
+      await deleteFile(film.file_storyboard);
+    }
+    if (file_rab && film.file_rab && file_rab !== film.file_rab) {
+      await deleteFile(film.file_rab);
+    }
+
     // Reset to pending if creator updates (needs re-approval)
     if (request.user.role_id !== ROLES.ADMIN && film.status === 'published') {
       updateData.status = 'pending';
@@ -211,6 +231,12 @@ export class FilmController {
         message: 'You can only delete your own films'
       });
     }
+
+    // Delete associated files
+    if (film.gambar_poster) await deleteFile(film.gambar_poster);
+    if (film.file_naskah) await deleteFile(film.file_naskah);
+    if (film.file_storyboard) await deleteFile(film.file_storyboard);
+    if (film.file_rab) await deleteFile(film.file_rab);
 
     await filmService.delete(id);
 

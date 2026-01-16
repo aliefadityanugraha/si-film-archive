@@ -33,7 +33,7 @@ const handleSubmit = async () => {
 <template>
   <div class="min-h-screen bg-[#F2EEE3] flex flex-col items-center justify-center px-4 py-12">
     <AuthCard 
-      title="CineArchive" 
+      title="PF Space" 
       subtitle="Reset Access Code"
     >
       <!-- Success State -->
@@ -92,7 +92,7 @@ const handleSubmit = async () => {
     </AuthCard>
 
     <p class="mt-8 text-xs text-stone-600 font-body uppercase tracking-wide">
-      © 2025 CineArchive Repository. All rights reserved.
+      © 2025 PF Space Repository. All rights reserved.
     </p>
   </div>
 </template>

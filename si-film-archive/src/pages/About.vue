@@ -6,9 +6,9 @@ import { Film, Users, Archive, Award } from 'lucide-vue-next'
 import { useHead } from '@unhead/vue'
 
 useHead({
-  title: 'Tentang CineArchive - Visi & Misi',
+  title: 'Tentang PF Space - Visi & Misi',
   meta: [
-    { name: 'description', content: 'Pelajari lebih lanjut tentang CineArchive, platform kearsipan film digital yang didedikasikan untuk mahasiswa.' }
+    { name: 'description', content: 'Pelajari lebih lanjut tentang PF Space, platform kearsipan film digital yang didedikasikan untuk mahasiswa.' }
   ]
 })
 </script>
@@ -18,10 +18,10 @@ useHead({
     <Navbar />
     <main class="pt-28 pb-16">
       <div class="max-w-4xl mx-auto px-4 md:px-8">
-        <h1 class="text-4xl md:text-5xl font-display font-semibold text-slate-900 mb-6">About CineArchive</h1>
+        <h1 class="text-4xl md:text-5xl font-display font-semibold text-slate-900 mb-6">About PF Space</h1>
         
         <p class="text-lg font-body text-slate-600 mb-12 leading-relaxed">
-          CineArchive is a digital platform dedicated to preserving and showcasing student film works. 
+          PF Space is a digital platform dedicated to preserving and showcasing student film works. 
           We believe in the power of cinema to tell stories, inspire change, and connect communities.
         </p>
 

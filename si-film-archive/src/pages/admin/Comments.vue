@@ -281,7 +281,7 @@ onMounted(async () => {
                           <span v-if="comment.film" class="flex items-center gap-1">
                             <Film class="w-3 h-3" />
                             <router-link 
-                              :to="`/detail/${comment.film_id}`"
+                              :to="`/film/${comment.film?.slug}`"
                               class="hover:text-brand-teal hover:underline"
                             >
                               {{ comment.film?.judul || getFilmName(comment.film_id) }}
@@ -295,7 +295,7 @@ onMounted(async () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          @click="router.push(`/detail/${comment.film_id}`)"
+                          @click="router.push(`/film/${comment.film?.slug}`)"
                           class="gap-1"
                         >
                           <Eye class="w-3 h-3" />

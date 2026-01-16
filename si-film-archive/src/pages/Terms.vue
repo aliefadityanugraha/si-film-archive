@@ -3,7 +3,7 @@ import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
 import SectionHeader from '@/components/SectionHeader.vue'
 import { Card, CardContent } from '@/components/ui/card'
-import { FileText, CheckCircle, AlertTriangle } from 'lucide-vue-next'
+import { FileText, ShieldCheck } from 'lucide-vue-next'
 </script>
 
 <template>
@@ -13,59 +13,45 @@ import { FileText, CheckCircle, AlertTriangle } from 'lucide-vue-next'
     <main class="max-w-4xl mx-auto px-4 md:px-8 py-12 pt-25">
       <SectionHeader 
         title="Terms of Service" 
-        subtitle="Syarat dan ketentuan penggunaan platform CineArchive."
+        subtitle="Syarat dan ketentuan penggunaan platform."
         :light-text="false"
       />
 
       <Card class="mt-8 border-2 border-black shadow-brutal">
         <CardContent class="p-6 md:p-8 space-y-6 text-stone-800">
           <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-200">
-            <FileText class="w-8 h-8 text-brand-red" />
-            <p class="text-sm text-stone-500">Berlaku mulai: 31 Desember 2024</p>
+            <ShieldCheck class="w-8 h-8 text-brand-teal" />
+            <p class="text-sm text-stone-500">Terakhir diperbarui: 31 Desember 2024</p>
           </div>
 
           <section>
-            <h3 class="text-xl font-display font-bold mb-3">1. Penerimaan Syarat</h3>
-            <p class="leading-relaxed">
-              Dengan mengakses atau menggunakan CineArchive, Anda setuju untuk terikat oleh Syarat dan Ketentuan ini. Jika Anda tidak setuju dengan bagian mana pun dari syarat ini, Anda tidak diperkenankan menggunakan layanan kami.
-            </p>
-          </section>
-
-          <section>
             <h3 class="text-xl font-display font-bold mb-3 flex items-center gap-2">
-              <CheckCircle class="w-5 h-5 text-stone-400" />
-              2. Akun Pengguna
+              <FileText class="w-5 h-5 text-stone-400" />
+              1. Penggunaan Layanan
             </h3>
             <p class="leading-relaxed">
-              Untuk mengakses fitur tertentu, Anda mungkin perlu membuat akun. Anda bertanggung jawab untuk menjaga kerahasiaan kata sandi Anda dan untuk semua aktivitas yang terjadi di bawah akun Anda.
+              Dengan menggunakan PF Space, Anda setuju untuk mematuhi semua kebijakan dan hukum yang berlaku. Anda bertanggung jawab atas konten yang Anda unggah dan aktivitas yang Anda lakukan di platform.
             </p>
           </section>
 
           <section>
-            <h3 class="text-xl font-display font-bold mb-3 flex items-center gap-2">
-              <AlertTriangle class="w-5 h-5 text-stone-400" />
-              3. Konten Pengguna
-            </h3>
+            <h3 class="text-xl font-display font-bold mb-3">2. Konten yang Diunggah</h3>
             <p class="leading-relaxed">
-              Anda memegang hak cipta atas konten yang Anda unggah. Namun, dengan mengunggah konten ke CineArchive, Anda memberikan kami lisensi non-eksklusif untuk menampilkan, mendistribusikan, dan mempromosikan konten tersebut dalam platform kami untuk tujuan pendidikan dan pengarsipan.
-            </p>
-            <ul class="list-disc pl-5 mt-2 space-y-1 text-stone-600">
-              <li>Konten tidak boleh melanggar hak cipta pihak lain.</li>
-              <li>Konten tidak boleh mengandung ujaran kebencian atau kekerasan eksplisit.</li>
-            </ul>
-          </section>
-
-          <section>
-            <h3 class="text-xl font-display font-bold mb-3">4. Hak Kekayaan Intelektual</h3>
-            <p class="leading-relaxed">
-              Layanan dan konten aslinya (tidak termasuk Konten yang disediakan oleh pengguna), fitur, dan fungsionalitas adalah dan akan tetap menjadi milik eksklusif CineArchive dan pemberi lisensinya.
+              Anda harus memiliki hak untuk mengunggah konten yang Anda kirimkan. Konten yang melanggar hak cipta, mengandung kekerasan, kebencian, atau hal yang tidak pantas dapat dihapus tanpa pemberitahuan.
             </p>
           </section>
 
           <section>
-            <h3 class="text-xl font-display font-bold mb-3">5. Penghentian</h3>
+            <h3 class="text-xl font-display font-bold mb-3">3. Pembatasan Tanggung Jawab</h3>
             <p class="leading-relaxed">
-              Kami dapat menghentikan atau menangguhkan akses Anda segera, tanpa pemberitahuan sebelumnya atau kewajiban, dengan alasan apa pun, termasuk tanpa batasan jika Anda melanggar Syarat.
+              Platform disediakan apa adanya. Kami tidak bertanggung jawab atas kerugian yang timbul dari penggunaan layanan, termasuk kerusakan data atau kegagalan akses.
+            </p>
+          </section>
+
+          <section>
+            <h3 class="text-xl font-display font-bold mb-3">4. Perubahan Ketentuan</h3>
+            <p class="leading-relaxed">
+              Kami dapat memperbarui syarat dan ketentuan dari waktu ke waktu. Perubahan akan berlaku setelah dipublikasikan di halaman ini.
             </p>
           </section>
         </CardContent>
