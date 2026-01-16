@@ -13,6 +13,7 @@ import {
   Eye, ChevronRight, Film, User, Calendar, X
 } from 'lucide-vue-next'
 import Toast from '@/components/Toast.vue'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const sidebarCollapsed = ref(false)
@@ -35,12 +36,7 @@ const selectedFilmId = ref('')
 const currentPage = ref(1)
 
 // Toast
-const toast = ref({ show: false, type: 'success', message: '' })
-
-const showToast = (message, type = 'success') => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => { toast.value.show = false }, 3000)
-}
+const { toast, showToast } = useToast()
 
 // Fetch films for filter
 const fetchFilms = async () => {
