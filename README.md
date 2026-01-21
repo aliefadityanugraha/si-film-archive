@@ -7,19 +7,22 @@ Platform kearsipan film mahasiswa untuk apresiasi, dokumentasi, dan pembelajaran
 ### Frontend (`si-film-archive/`)
 - **Framework:** Vue 3 (Composition API `<script setup>`)
 - **Build Tool:** Vite
-- **Styling:** Tailwind CSS (Custom Brutal Design System)
-- **UI Components:** shadcn/ui Vue
+- **Styling:** Tailwind CSS v4 (Custom Brutal Design System)
+- **UI Components:** shadcn/ui Vue (Radix Vue)
+- **Rich Text Editor:** Tiptap
 - **Icons:** Lucide Vue
-- **State Management:** Vue Composables
+- **State Management:** Vue Composables (Native Reactivity)
 - **Routing:** Vue Router
+- **SEO:** Unhead
 
 ### Backend (`backend/`)
 - **Framework:** Fastify
 - **Language:** JavaScript (Node.js)
 - **Database:** MySQL
-- **ORM/Query Builder:** Objection.js & Knex
+- **ORM/Query Builder:** Objection.js & Knex (with Kysely for some types)
 - **Authentication:** Better Auth
-- **File Handling:** @fastify/multipart
+- **File Handling:** @fastify/multipart (Streaming upload support)
+- **Static Serving:** @fastify/static
 
 ## Project Structure
 
@@ -27,7 +30,7 @@ Platform kearsipan film mahasiswa untuk apresiasi, dokumentasi, dan pembelajaran
 .
 ├── backend/                # Server-side code (API)
 │   ├── src/
-│   │   ├── controllers/    # Request handlers
+│   │   ├── controllers/    # Request handlers (Film, Auth, Upload, etc.)
 │   │   ├── models/         # Database models (Objection.js)
 │   │   ├── routes/         # API routes definition
 │   │   └── database/       # Migrations & Seeds
@@ -37,8 +40,8 @@ Platform kearsipan film mahasiswa untuk apresiasi, dokumentasi, dan pembelajaran
 │   ├── src/
 │   │   ├── components/     # Reusable UI components
 │   │   ├── pages/          # Application views/pages
-│   │   ├── composables/    # Shared state & logic
-│   │   └── lib/            # Utilities (API wrapper, etc.)
+│   │   ├── composables/    # Shared state & logic (useAuth, useToast, etc.)
+│   │   └── lib/            # Utilities (API wrapper, formatter)
 │   └── ...
 └── README.md               # Documentation
 ```
@@ -46,12 +49,16 @@ Platform kearsipan film mahasiswa untuk apresiasi, dokumentasi, dan pembelajaran
 ## Features
 
 - **Authentication & Authorization**: Login, Register, dan Role-Based Access Control (User, Creator, Moderator, Admin).
-- **Film Archive**: Katalog film, pencarian, filter kategori, dan halaman detail film.
+- **Hybrid Film Archive**:
+  - **Streaming**: Dukungan dual source (Embed YouTube & Direct MP4/WebM Upload).
+  - **Catalog**: Pencarian, filter kategori, dan status film.
+  - **Detail Page**: Informasi lengkap, sinopsis, dan diskusi.
+- **Dynamic Banner System**: Banner halaman depan diambil langsung dari film unggulan (Curated/Banner Active status).
 - **Learning Assets**: Akses ke aset pembelajaran seperti Naskah Film, Storyboard, dan RAB (PDF Viewer).
-- **Streaming & Preview**: Embed video player dan trailer.
-- **Voting System**: Sistem voting untuk film terfavorit (Trending).
-- **Upload & Management**: Creator dapat mengunggah karya; Admin/Moderator mengelola konten.
-- **Admin Dashboard**: Manajemen User, Film, Kategori, Laporan, dan Analytics.
+- **Discussion System**: Komentar dan balasan (threaded comments) pada setiap film.
+- **Voting & Collection**: Sistem voting untuk trending dan fitur "Simpan ke Koleksi" pribadi.
+- **Creator Studio**: Upload karya mandiri dengan progress bar dan validasi file.
+- **Admin Dashboard**: Manajemen User, Film (termasuk Banner), Kategori, dan Moderasi Konten.
 - **Brutal Design**: Antarmuka modern dengan gaya Neo-Brutalism (High contrast, bold borders).
 
 ## Getting Started
@@ -68,7 +75,10 @@ npm install
 
 # Setup Environment Variables
 cp .env.example .env
-# (Sesuaikan konfigurasi DB_NAME, DB_USER, DB_PASS di file .env)
+# Konfigurasi wajib di .env:
+# - DB_NAME, DB_USER, DB_PASS (MySQL Connection)
+# - BETTER_AUTH_SECRET (Auth Security)
+# - ALLOWED_ORIGINS (CORS, e.g., http://localhost:5173)
 
 # Run Database Migrations & Seeds
 npm run migrate
@@ -90,8 +100,9 @@ cd si-film-archive
 # Install dependencies
 pnpm install
 
-# Setup Environment Variables (jika perlu)
-# Pastikan VITE_API_URL mengarah ke backend (default: http://localhost:3000)
+# Setup Environment Variables
+# Pastikan file .env (atau .env.local) memiliki:
+# VITE_API_URL=http://localhost:3000
 
 # Start Development Server
 pnpm dev
@@ -102,12 +113,13 @@ Aplikasi akan berjalan di `http://localhost:5173`.
 ## Design System
 
 **Neo-Brutalist Style:**
-- **Border:** Tebal dan hitam (`border-2 border-black`).
+- **Border:** Tebal dan hitam (`border-2 border-black` / `border-stone-800`).
 - **Shadow:** Hard shadow tanpa blur (`shadow-brutal`).
-- **Radius:** Siku tajam (No border radius).
+- **Radius:** Siku tajam atau rounded minimal.
 - **Colors:**
-  - Red: `#ef4444` (Accent)
-  - Teal: `#265C5C` (Primary)
+  - Red: `#ef4444` (Accent / Action)
+  - Teal: `#265C5C` (Primary / Brand)
+  - Orange: Brand Orange (Highlight)
   - Cream: `#F2EEE3` (Background)
 
 ## Development Status
@@ -115,5 +127,6 @@ Aplikasi akan berjalan di `http://localhost:5173`.
 - [x] **Backend API**: Terintegrasi (Fastify + MySQL).
 - [x] **Frontend UI**: Terimplementasi (Vue 3 + Brutal Design).
 - [x] **Authentication**: Terimplementasi (Better Auth).
+- [x] **Media Handling**: Upload & Streaming (YouTube/Local) berfungsi.
 - [x] **Database**: Migrations & Seeding ready.
-- [ ] **Testing**: Unit & E2E Testing (Partial).
+- [ ] **Testing**: Unit & E2E Testing.

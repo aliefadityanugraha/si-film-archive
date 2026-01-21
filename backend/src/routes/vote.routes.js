@@ -1,7 +1,12 @@
 import { voteController } from '../controllers/index.js';
-import { authenticate, optionalAuth } from '../middlewares/index.js';
+import { authenticate, optionalAuth, requireAdmin } from '../middlewares/index.js';
 
 export default async function voteRoutes(fastify) {
+  // Admin: Reset all votes
+  fastify.post('/reset', {
+    preHandler: [authenticate, requireAdmin]
+  }, voteController.resetVotes.bind(voteController));
+
   // Public: Get trending films
   fastify.get('/trending', voteController.getTrending.bind(voteController));
 

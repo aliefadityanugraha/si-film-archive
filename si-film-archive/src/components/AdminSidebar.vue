@@ -5,7 +5,7 @@ import { useAuth } from '@/composables/useAuth'
 import { 
   LayoutDashboard, Shield, Users, Film, Settings, 
   LogOut, ChevronLeft, ChevronRight, Upload, FileText,
-  BarChart3, Bell, HelpCircle, FolderOpen, ImageIcon
+  BarChart3, Bell, HelpCircle, FolderOpen, Vote
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -24,10 +24,10 @@ const allMenuItems = [
   { name: 'Pengguna', icon: Users, path: '/admin/users' },
   { name: 'Kategori', icon: FolderOpen, path: '/admin/categories' },
   { name: 'Film', icon: Film, path: '/admin/films' },
+  { name: 'Voting', icon: Vote, path: '/admin/voting' },
   { name: 'Unggahan', icon: Upload, path: '/admin/uploads' },
   { name: 'Laporan', icon: FileText, path: '/admin/reports' },
   { name: 'Analitik', icon: BarChart3, path: '/admin/analytics' },
-  { name: 'Banner', icon: ImageIcon, path: '/admin/carousel' },
 ]
 
 const menuItems = computed(() => {

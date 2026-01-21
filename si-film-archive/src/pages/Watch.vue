@@ -173,7 +173,7 @@ onMounted(fetchFilm)
             <div class="max-w-[1400px] mx-auto">
               <div class="aspect-video">
                 <iframe 
-                  v-if="film.link_video_utama"
+                  v-if="film.link_video_utama && isYoutubeUrl(film.link_video_utama)"
                   :src="getYoutubeEmbedUrl(film.link_video_utama)"
                   class="w-full h-full"
                   frameborder="0"
@@ -181,6 +181,12 @@ onMounted(fetchFilm)
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                   allowfullscreen
                 ></iframe>
+                <video 
+                  v-else-if="film.link_video_utama"
+                  :src="film.link_video_utama"
+                  controls
+                  class="w-full h-full bg-black"
+                ></video>
                 <div v-else class="w-full h-full flex items-center justify-center bg-stone-300">
                   <div class="text-center">
                     <Film class="w-16 h-16 text-stone-400 mx-auto mb-4" />

@@ -113,7 +113,7 @@ watch(() => route.params, () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-stone-100">
+  <div class="min-h-screen bg-[#F2EEE3]">
     <Navbar />
     
     <main class="max-w-7xl mx-auto px-4 md:px-8 pt-24 pb-12">
@@ -179,22 +179,22 @@ watch(() => route.params, () => {
             <!-- Controls -->
             <div class="flex items-center gap-3 ml-auto">
               <!-- Action Buttons -->
-              <Button 
+              <!-- <Button 
                 variant="outline" 
                 class="hidden md:flex items-center gap-2 border-2 border-stone-300"
                 @click="printAsset"
               >
                 <Printer class="w-4 h-4" />
                 <span class="font-bold">Print</span>
-              </Button>
+              </Button> -->
               
-              <Button 
+              <!-- <Button 
                 @click="downloadAsset"
                 class="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white border-2 border-stone-800 shadow-[2px_2px_0px_0px_rgba(43,38,38,1)]"
               >
                 <Download class="w-4 h-4" />
                 <span class="font-bold">Download</span>
-              </Button>
+              </Button> -->
             </div>
           </div>
         </div>
@@ -203,7 +203,7 @@ watch(() => route.params, () => {
         <div class="bg-stone-700 rounded-xl border-2 border-stone-800 shadow-inner overflow-hidden min-h-[600px] lg:min-h-[800px] relative">
           <iframe 
             v-if="assetUrl"
-            :src="assetUrl"
+            :src="assetUrl + '#toolbar=0'"
             class="w-full h-full absolute inset-0 bg-white"
             frameborder="0"
           ></iframe>

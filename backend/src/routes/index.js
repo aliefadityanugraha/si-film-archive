@@ -6,7 +6,6 @@ import discussionRoutes from './discussion.routes.js';
 import chatRoutes from './chat.routes.js';
 import collectionRoutes from './collection.routes.js';
 import adminRoutes from './admin.routes.js';
-import carouselRoutes from './carousel.routes.js';
 import uploadRoutes from './upload.routes.js';
 
 export default async function routes(fastify) {
@@ -36,9 +35,6 @@ export default async function routes(fastify) {
 
   // Admin routes
   await fastify.register(adminRoutes, { prefix: '/admin' });
-
-  // Carousel routes
-  await fastify.register(carouselRoutes, { prefix: '/carousel' });
 
   // Health check
   fastify.get('/health', async () => {

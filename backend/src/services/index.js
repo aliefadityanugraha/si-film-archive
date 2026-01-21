@@ -4,5 +4,4 @@ export * from './film.service.js';
 export * from './vote.service.js';
 export * from './discussion.service.js';
 export * from './collection.service.js';
-export * from './carousel.service.js';
 export * from './chat.service.js';

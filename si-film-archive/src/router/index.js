@@ -182,15 +182,15 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
-    path: '/admin/help',
-    name: 'AdminHelp',
-    component: () => import('../pages/admin/Help.vue'),
+    path: '/admin/voting',
+    name: 'VotingManager',
+    component: () => import('../pages/admin/VotingManager.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
-    path: '/admin/carousel',
-    name: 'AdminCarousel',
-    component: () => import('../pages/admin/CarouselManager.vue'),
+    path: '/admin/help',
+    name: 'AdminHelp',
+    component: () => import('../pages/admin/Help.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {

@@ -28,7 +28,7 @@ await fastify.register(cors, {
     'http://localhost:5173', 
     'http://127.0.0.1:5173', 
     'http://localhost:3000',
-    'https://e2389cff26ba.ngrok-free.app/',
+    'http://103.127.96.155',
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true

@@ -45,6 +45,10 @@ export class VoteService {
     return parseInt(result.count);
   }
 
+  async resetAllVotes() {
+    return await Vote.query().delete().whereRaw('1 = 1');
+  }
+
   async getTrending(period = 'week', limit = 10) {
     let dateFilter;
     const now = new Date();
@@ -60,7 +64,7 @@ export class VoteService {
 
     const query = knex('films')
       .select(
-        'films.*',
+        'films.film_id',
         knex.raw('COUNT(votes.vote_id) as vote_count')
       )
       .leftJoin('votes', function() {
@@ -91,7 +95,7 @@ export class VoteService {
 
     // Merge vote_count
     return filmsWithRelations.map(film => {
-      const voteData = films.find(f => f.film_id === film.film_id);
+      const voteData = films.find(f => String(f.film_id) === String(film.film_id));
       return {
         ...film,
         vote_count: parseInt(voteData?.vote_count || 0)

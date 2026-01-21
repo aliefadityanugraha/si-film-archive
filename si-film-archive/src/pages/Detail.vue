@@ -88,7 +88,11 @@ const fetchFilm = async () => {
   loading.value = true
   try {
     const res = await api.get(`/api/films/${filmSlug.value}`)
+    console.log('API Response:', res)
     film.value = res.data
+    console.log('Film Data:', film.value)
+    console.log('Link Video Utama:', film.value?.link_video_utama)
+    
     // Now that we have film_id, fetch related data
     fetchVoteData()
     fetchCollectionStatus()
@@ -281,6 +285,11 @@ const totalCommentCount = computed(() => {
 })
 
 // Get YouTube embed URL
+const isYoutubeUrl = (url) => {
+  if (!url) return false
+  return url.includes('youtube.com') || url.includes('youtu.be')
+}
+
 const getYoutubeEmbedUrl = (url) => {
   if (!url) return null
   const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s]+)/)
@@ -427,14 +436,26 @@ onUnmounted(() => {
               <!-- Action Buttons -->
               <div class="flex flex-wrap gap-3">
                 <Button 
-                  v-if="film.link_video_utama"
+                  :disabled="!film.link_video_utama"
                   variant="default"
-                  class="bg-brand-red hover:bg-red-600"
-                  @click="router.push(`/watch/${film.slug}`)"
+                  class="bg-brand-red hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed h-auto py-2"
+                  @click="film.link_video_utama ? router.push(`/watch/${film.slug}`) : null"
                 >
                   <Play class="w-4 h-4 mr-2" />
-                  Tonton Film
+                  <div class="flex flex-col items-start">
+                    <span>{{ film.link_video_utama ? 'Tonton Film' : 'Video Tidak Tersedia' }}</span>
+                    <!-- <span class="text-[10px] opacity-70 max-w-[200px] truncate" v-if="film.link_video_utama">
+                      {{ film.link_video_utama }}
+                    </span> -->
+                  </div>
                 </Button>
+                <!-- Debug Info (Temporary) -->
+                <div class="w-full text-xs text-red-500 font-mono bg-red-50 p-2 rounded border border-red-200" v-if="!film.link_video_utama">
+                  Debug: Link video kosong. 
+                  <br>ID: {{ film.film_id }}
+                  <br>Judul: {{ film.judul }}
+                  <br>Link: "{{ film.link_video_utama }}" (Type: {{ typeof film.link_video_utama }})
+                </div>
                 <Button 
                   variant="outline" 
                   class="bg-white text-stone-800"
@@ -540,12 +561,12 @@ onUnmounted(() => {
                     ></textarea>
                     <div class="flex justify-end">
                       <Button 
-                        @click="submitComment()"
-                        :disabled="!newComment.trim() || submittingComment"
-                        class="gap-2 shadow-brutal-xs"
+                        @click="submitComment()" 
+                        :disabled="submittingComment || !newComment.trim()"
+                        class="bg-brand-red hover:bg-red-600 text-white rounded-none border-2 border-stone-800 shadow-brutal-xs active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
                       >
-                        <Loader2 v-if="submittingComment" class="w-4 h-4 animate-spin" />
-                        <Send v-else class="w-4 h-4" />
+                        <Loader2 v-if="submittingComment" class="w-4 h-4 mr-2 animate-spin" />
+                        <Send v-else class="w-4 h-4 mr-2" />
                         Kirim Komentar
                       </Button>
                     </div>
@@ -558,43 +579,44 @@ onUnmounted(() => {
               </div>
 
               <!-- Comments List -->
-              <div v-if="loadingComments" class="flex justify-center py-12">
-                <Loader2 class="w-10 h-10 animate-spin text-brand-teal" />
-              </div>
-              <div v-else-if="comments.length === 0" class="text-center py-12 border-2 border-stone-200 bg-stone-50/50">
-                <MessageCircle class="w-12 h-12 text-stone-300 mx-auto mb-3" />
-                <p class="text-stone-400 font-body italic">
-                  Belum ada diskusi untuk karya ini. Jadilah yang pertama!
-                </p>
-                <p v-if="isLoggedIn" class="text-stone-500 font-body mt-3">
-                  Tulis komentar pertamamu melalui formulir di atas.
-                </p>
-                <p v-else class="text-stone-500 font-body mt-3">
-                  Login terlebih dahulu untuk mulai berdiskusi.
-                </p>
-              </div>
-              <div v-else class="space-y-2">
-                <CommentItem 
-                  v-for="comment in comments" 
-                  :key="comment.diskusi_id"
-                  :comment="comment"
-                  :is-logged-in="isLoggedIn"
-                  :current-user="user"
-                  :can-moderate="canModerate"
-                  @reply="submitComment"
-                  @delete="deleteComment"
-                />
+              <div class="space-y-6">
+                <div v-if="loadingComments" class="text-center py-8">
+                  <Loader2 class="w-8 h-8 animate-spin mx-auto text-stone-400" />
+                </div>
+                <div v-else-if="comments.length === 0" class="text-center py-8 bg-stone-100 rounded border-2 border-stone-200 border-dashed">
+                  <MessageCircle class="w-12 h-12 text-stone-300 mx-auto mb-2" />
+                  <p class="text-stone-500 font-body">Belum ada diskusi. Jadilah yang pertama berkomentar!</p>
+                </div>
+                <div v-else class="space-y-6">
+                  <CommentItem 
+                    v-for="comment in comments" 
+                    :key="comment.discussion_id" 
+                    :comment="comment" 
+                    :current-user-id="user?.id"
+                    :can-moderate="canModerate"
+                    @reply="submitComment"
+                    @delete="deleteComment"
+                  />
+                </div>
               </div>
             </ContentSection>
+            
+            <!-- DEBUG DATA -->
+            <div class="mt-8 p-4 bg-gray-100 rounded overflow-auto max-h-96 border border-gray-300">
+              <h3 class="font-bold mb-2">Debug Data Film:</h3>
+              <pre class="text-xs">{{ JSON.stringify(film, null, 2) }}</pre>
+            </div>
+
           </div>
 
           <!-- Right Column: Learning Assets -->
           <div class="lg:col-span-1 space-y-6 animate-fade-in-up" style="animation-delay: 500ms; opacity: 0; animation-fill-mode: forwards;">
-            <!-- Trailer (YouTube Embed) -->
+            <!-- Trailer -->
             <Card v-if="film.link_trailer">
               <CardContent class="p-0">
                 <div class="aspect-video bg-black">
                   <iframe 
+                    v-if="isYoutubeUrl(film.link_trailer)"
                     :src="getYoutubeEmbedUrl(film.link_trailer)"
                     class="w-full h-full"
                     frameborder="0"
@@ -602,6 +624,12 @@ onUnmounted(() => {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen
                   ></iframe>
+                  <video 
+                    v-else
+                    :src="film.link_trailer"
+                    controls
+                    class="w-full h-full"
+                  ></video>
                 </div>
               </CardContent>
             </Card>

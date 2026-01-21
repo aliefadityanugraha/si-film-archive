@@ -101,11 +101,28 @@ export class VoteController {
 
     return reply.send({
       success: true,
-      data: { 
+      data: {
         vote_count: voteCount,
         has_voted: hasVoted
       }
     });
+  }
+
+  // Admin: Reset all votes
+  async resetVotes(request, reply) {
+    try {
+      await voteService.resetAllVotes();
+      return reply.send({
+        success: true,
+        message: 'All votes have been reset successfully'
+      });
+    } catch (error) {
+      request.log.error(error);
+      return reply.status(500).send({
+        success: false,
+        message: 'Failed to reset votes'
+      });
+    }
   }
 
   // Public: Get trending films

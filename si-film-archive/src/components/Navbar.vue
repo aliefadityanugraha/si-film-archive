@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
-import { Search, User, Film, LogOut, Settings, LayoutDashboard, Upload, LogIn, Shield, Loader2, X, Bookmark } from 'lucide-vue-next'
+import { Search, User, Film, LogOut, Settings, LayoutDashboard, Upload, LogIn, Shield, Loader2, X, Bookmark, Info } from 'lucide-vue-next'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -157,6 +157,16 @@ const handleLogout = async () => {
         <!-- Overlay for closing -->
         <div v-if="showResults" class="fixed inset-0 z-30" @click="showResults = false"></div>
       </div>
+
+      <!-- About Button -->
+      <router-link to="/about" class="mr-3">
+        <Button 
+          class="bg-brand-orange text-stone-900 border-2 border-black shadow-brutal hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] font-bold uppercase rounded-none transition-all h-10 px-4 flex items-center gap-2"
+        >
+          <Info class="w-4 h-4" />
+          <span class="hidden sm:inline">About Us</span>
+        </Button>
+      </router-link>
 
       <!-- Auth Buttons (Not Logged In) -->
       <div v-if="!isLoggedIn" class="flex items-center gap-2 md:gap-3">
